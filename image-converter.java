@@ -23,8 +23,8 @@ public class ImageConverter {
 
     public static void main(String[] args) {
         // Example usage
-        String inputImagePath = "path/to/your/input/image.jpg"; // Replace with your input image path
-        String outputImagePath = "path/to/your/output/image.png"; // Replace with your desired output path
+        String inputImagePath = "pathto/your/input/image.jpg"; 
+        String outputImagePath = "path/to/your/output/image.png"; 
 
         convertToPng(inputImagePath, outputImagePath);
     }
