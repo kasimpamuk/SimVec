@@ -1,0 +1,26 @@
+-- Enable the PGVector extension
+CREATE EXTENSION pgvector;
+
+-- Create a sample table with a vector column
+CREATE TABLE items (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    vector vec(16) -- Assuming 16-dimensional vectors
+);
+
+-- Insert sample data
+INSERT INTO items (name, vector) VALUES 
+('Item 1', ARRAY[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.2, 17.8]), 
+('Item 2', ARRAY[1.1, 3.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.5, 19.2]),
+('Item 3', ARRAY[1.2, 4.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.7, 19.3]),
+('Item 4', ARRAY[1.3, 5.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.8, 19.7]),
+('Item 5', ARRAY[1.4, 6.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.9, 19.5]),
+('Item 6', ARRAY[1.5, 7.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.3, 19.6]),
+('Item 7', ARRAY[1.6, 8.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 19.9]),
+('Item 8', ARRAY[1.8, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.1, 19.8]),
+; 
+
+-- Define a query vector
+SELECT * FROM items
+ORDER BY vector <-> ARRAY[1.6, 2.7, 3.4, 4.5, 5.9, 6.0, 7.3, 8.1, 9.6, 10.1, 11.2, 12.8, 13.0, 14.2, 15.8, 16.0] -- query vector
+LIMIT 2; -- Retrieves the top 2 nearest neighbors
