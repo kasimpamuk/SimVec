@@ -29,7 +29,7 @@ public class SimvecController {
 	public String cloudSynchronization() {
 		// This can be implemented as a cron job
 		// TODO: Cloud synchronization logic
-		return "Hit cloud syncronization endpoint";
+		return "Hit cloud synchronization endpoint";
 	}
 
 }
