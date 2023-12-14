@@ -31,3 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+
+vector-database-api\api_for_database\data
