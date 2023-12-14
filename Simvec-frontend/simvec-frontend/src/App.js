@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import './App.css'; // Import the CSS file
+import logo from './simvec.png'; // Adjust the path based on your folder structure
+
 
 function ImageUpload() {
   const [image, setImage] = useState(null);
@@ -33,20 +36,21 @@ function ImageUpload() {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} style={{ textAlign: 'center' }}>
-        <input 
-          type="file" 
-          onChange={handleImageChange} 
-          style={{ display: 'none' }} 
-          id="file-upload"
-        />
-        <label htmlFor="file-upload" style={{ border: '2px dashed grey', padding: '20px', cursor: 'pointer' }}>
-          {preview ? <img src={preview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px' }} /> : "Click to select an image"}
-        </label>
-        <br />
-        <button type="submit" style={{ marginTop: '10px' }}>Upload</button>
-      </form>
+    <div className="image-upload-container">
+      <img src={logo} alt="Logo" className="website-logo" />
+        <form onSubmit={handleSubmit}>
+          <input 
+            type="file" 
+            onChange={handleImageChange} 
+            style={{ display: 'none' }} 
+            id="file-upload"
+          />
+          <label htmlFor="file-upload" className="image-upload-label">
+            {preview ? <img src={preview} alt="Preview" className="image-preview" /> : "Click to select an image"}
+          </label>
+          <br />
+          <button type="submit" className="upload-btn">Upload</button>
+        </form>
     </div>
   );
 }
