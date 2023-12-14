@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import './App.css'; // Import the CSS file
+import './App.css'; // Make sure this path is correct
 import logo from './simvec.png'; // Adjust the path based on your folder structure
-
 
 function ImageUpload() {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [displayedImage, setDisplayedImage] = useState(null);
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
-    setPreview(URL.createObjectURL(file)); // for creating a preview
+    setPreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e) => {
@@ -23,14 +24,14 @@ function ImageUpload() {
     formData.append('file', image);
 
     try {
-      const response = await fetch('http://localhost:8080/upload', {
+      const response = await fetch('http://localhost:8080/api/upload', {
         method: 'POST',
         body: formData,
       });
-      // Handle response...
-      alert("Image uploaded successfully!");
+      const fileData = await response.blob();
+      const imageObjectURL = URL.createObjectURL(fileData);
+      setDisplayedImage(imageObjectURL);
     } catch (error) {
-      // Handle error...
       alert("Error uploading image");
     }
   };
@@ -38,19 +39,25 @@ function ImageUpload() {
   return (
     <div className="image-upload-container">
       <img src={logo} alt="Logo" className="website-logo" />
-        <form onSubmit={handleSubmit}>
-          <input 
-            type="file" 
-            onChange={handleImageChange} 
-            style={{ display: 'none' }} 
-            id="file-upload"
-          />
-          <label htmlFor="file-upload" className="image-upload-label">
-            {preview ? <img src={preview} alt="Preview" className="image-preview" /> : "Click to select an image"}
-          </label>
-          <br />
-          <button type="submit" className="upload-btn">Upload</button>
-        </form>
+      <form onSubmit={handleSubmit}>
+        <input 
+          type="file" 
+          onChange={handleImageChange} 
+          style={{ display: 'none' }} 
+          id="file-upload"
+        />
+        <label htmlFor="file-upload" className="image-upload-label">
+          {preview ? <img src={preview} alt="Preview" className="image-preview" /> : "Click to select an image"}
+        </label>
+        <br />
+        <button type="submit" className="upload-btn">Upload</button>
+      </form>
+      {displayedImage && (
+        <div>
+          <p>Uploaded Image:</p>
+          <img src={displayedImage} alt="Uploaded" className="uploaded-image" />
+        </div>
+      )}
     </div>
   );
 }

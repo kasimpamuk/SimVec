@@ -5,6 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c1d94d71-ff16-4a96-93f8-e7d0495e7205" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/main/java/io/gitlab/group23/simvec/SimvecApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/main/java/io/gitlab/group23/simvec/SimvecApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/main/java/io/gitlab/group23/simvec/controller/SimvecController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/main/java/io/gitlab/group23/simvec/controller/SimvecController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Simvec-frontend/simvec-frontend/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/Simvec-frontend/simvec-frontend/public/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Simvec-frontend/simvec-frontend/src/App.css" beforeDir="false" afterPath="$PROJECT_DIR$/Simvec-frontend/simvec-frontend/src/App.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Simvec-frontend/simvec-frontend/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/Simvec-frontend/simvec-frontend/src/App.js" afterDir="false" />
     </list>
@@ -16,6 +20,22 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitLabMergeRequestFiltersHistory"><![CDATA[{
+  "history": [
+    {
+      "state": "OPENED"
+    }
+  ],
+  "lastFilter": {
+    "state": "OPENED"
+  }
+}]]></component>
+  <component name="GitLabMergeRequestsSettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "first": "https://gitlab.ceng.metu.edu.tr/group-23/simvec.git",
+    "second": "b54dd476-eba0-4787-8de2-efd79a8493ac"
+  }
+}]]></component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -50,6 +70,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "project.scopes",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -77,7 +98,7 @@
       <updated>1702468562044</updated>
       <workItem from="1702468564529" duration="1068000" />
       <workItem from="1702555602801" duration="1331000" />
-      <workItem from="1702562551157" duration="695000" />
+      <workItem from="1702562551157" duration="3763000" />
     </task>
     <servers />
   </component>

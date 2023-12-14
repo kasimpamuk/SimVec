@@ -43,4 +43,9 @@
     margin-bottom: 20px;
   }
   
+  .uploaded-image {
+    max-width: 100%;
+    height: auto;
+    /* other styles... */
+  }
   
