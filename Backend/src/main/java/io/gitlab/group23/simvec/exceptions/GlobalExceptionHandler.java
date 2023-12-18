@@ -34,6 +34,30 @@ public class GlobalExceptionHandler {
                 .body("An unexpected error occurred. Please try again later.");
     }
 
-    // more to be added
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        // Log for internal tracking
+        // log.error("Data integrity violation", ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Data integrity error: A conflict occurred with the existing data.");
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<String> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body("HTTP method not supported for this endpoint.");
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<String> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body("Unsupported media type: Please check your request's content type.");
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleEntityNotFound(EntityNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Resource not found: The requested entity does not exist.");
+    }
 
 }
