@@ -125,7 +125,7 @@ def initialize_milvus():
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def image_conversion(request):
+def image_based_search(request):
     # Connect to Milvus service
     collection = initialize_milvus()
 
@@ -146,7 +146,7 @@ def image_conversion(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def text_conversion(request):
+def text_based_search(request):
     # Connect to Milvus service
     collection = initialize_milvus()
 
@@ -164,3 +164,31 @@ def text_conversion(request):
         # Handle any errors that occur during the process
         return JsonResponse({'error': str(e)}, status=500)
     
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def image_embedding_and_storage(request):
+
+    collection = initialize_milvus()
+    
+    try:
+        # Assuming the request body will contain the path to the image(s)
+        image_paths = request.body.decode('utf-8').split('\n')  
+
+        # Process each image and store the embeddings
+        stored_ids = []
+        for image_path in image_paths:
+            
+            # Use the Towhee pipeline to process and insert the image embedding into Milvus
+            p_insert_result = p_insert(image_path)
+            stored_ids.extend(p_insert_result)
+
+        # Commit the changes to the Milvus database
+        collection.load()
+
+        # Return the list of Milvus primary keys as a response
+        return JsonResponse({'message': 'Images processed and stored successfully', 'stored_ids': stored_ids})
+
+    except Exception as e:
+        # Handle any errors that occur during the process
+        return JsonResponse({'error': str(e)}, status=500)
