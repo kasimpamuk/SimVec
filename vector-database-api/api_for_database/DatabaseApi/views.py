@@ -79,9 +79,10 @@ def search_image_or_text(data, data_type, collection):
         return dc
         
     elif data_type == 'text':  
-        pass
-        # Placeholder for text processing 
-        
+        collection.load()
+        dc = p_search(data)
+        return dc
+
 # Create milvus collection (delete first if exists)
 def create_milvus_collection(collection_name, dim):
     if utility.has_collection(collection_name):
@@ -146,24 +147,20 @@ def image_conversion(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def text_conversion(request):
-    #print(request.body.decode('utf-8'))
-    return JsonResponse({'message': 'Text conversion hit'})
-    """
+    # Connect to Milvus service
+    collection = initialize_milvus()
+
     try:
-        # Determine if the request has an image or text
         text = request.body.decode('utf-8')
-        print(text)
-        data = {'text': text}
-            
-        # Process text using ML model
-        embeddings = get_embeddings(data, 'text')
-
-        # Store embeddings in external vector database
-        stored_id = store_in_vector_db(embeddings)
-        return JsonResponse({'message': 'Text processed successfully', 'stored_id': stored_id})
+        QUERY_SRC = text
+        
+        # Process image using ML model
+        result_path_list = search_image_or_text(QUERY_SRC, 'text', collection).to_list()
+        
+        # return result_path_list as response
+        return JsonResponse({'message': 'Text processed successfully', 'stored_id': result_path_list})
     
-        return JsonResponse({'error': 'No valid text provided'}, status=400)
-
     except Exception as e:
         # Handle any errors that occur during the process
-        return JsonResponse({'error': str(e)}, status=500) """
+        return JsonResponse({'error': str(e)}, status=500)
+    
