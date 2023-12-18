@@ -4,7 +4,7 @@
     padding: 20px;
     text-align: center;
   }
-  
+
   .image-upload-label {
     border: 2px dashed grey;
     padding: 20px;
@@ -12,18 +12,18 @@
     display: inline-block;
     margin-top: 10px;
   }
-  
+
   .image-upload-label:hover {
     border-color: blue;
   }
-  
+
   .image-preview {
     max-width: 100%;
     max-height: 200px;
     display: block;
     margin-bottom: 10px;
   }
-  
+
   .upload-btn {
     margin-top: 10px;
     padding: 10px 20px;
@@ -33,7 +33,7 @@
     border-radius: 5px;
     cursor: pointer;
   }
-  
+
   .upload-btn:hover {
     background-color: #0056b3;
   }
@@ -42,10 +42,9 @@
     height: 60px; /* Adjust size as needed */
     margin-bottom: 20px;
   }
-  
+
   .uploaded-image {
     max-width: 100%;
     height: auto;
     /* other styles... */
   }
-  
