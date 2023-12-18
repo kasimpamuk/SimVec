@@ -16,9 +16,17 @@ public class SimvecUser {
 	private Integer id;
 
 	@Column(unique = true)
+	@NotEmpty
 	private String userName;
+
 	@Column(unique = true)
+	@Email
 	private String email;
+
+	@NotEmpty
 	private String password;
+
+	private boolean deleted = false;
+
 
 }

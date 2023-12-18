@@ -5,6 +5,7 @@ import io.gitlab.group23.simvec.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -21,14 +22,16 @@ public class SimvecController {
 
 	private final UserService userService;
 
+
 	@Autowired
 	public SimvecController(UserService userService) {
 		this.userService = userService;
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<SimvecUser> registerUser(@RequestBody SimvecUser simvecUser) {
-		return ResponseEntity.ok(userService.saveUser(simvecUser));
+	public ResponseEntity<SimvecUser> registerUser(@Validated @RequestBody SimvecUser simvecUser) {
+		SimvecUser savedUser = userService.saveUser(simvecUser);
+		return ResponseEntity.ok(savedUser);
 	}
 
 	@GetMapping("/text-based-search")

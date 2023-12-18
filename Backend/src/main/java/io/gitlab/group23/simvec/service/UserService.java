@@ -29,15 +29,17 @@ public class UserService {
 	}
 
 	public SimvecUser saveUser(SimvecUser simvecUser) {
+		String encodedPassword = passwordEncoder.encode(simvecUser.getPassword());
+		simvecUser.setPassword(encodedPassword);
 		return userRepository.save(simvecUser);
 	}
 
+
 	public void deleteUser(Integer id) {
-		if (userRepository.existsById(id)) {
-			userRepository.deleteById(id);
-			return;
-		}
-		log.warn("UserService::deleteUser(): No user found with the given id");
+		userRepository.findById(id).ifPresent(user -> {
+			user.setDeleted(true);
+			userRepository.save(user);
+		});
 	}
 
 }
