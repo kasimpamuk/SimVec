@@ -147,6 +147,10 @@ def image_based_search(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def text_based_search(request):
+    # Placeholder
+    return JsonResponse({'message': 'Hit text_based_search'})
+    # Actual text_based_search logic will be implemented later
+    """
     # Connect to Milvus service
     collection = initialize_milvus()
 
@@ -163,6 +167,7 @@ def text_based_search(request):
     except Exception as e:
         # Handle any errors that occur during the process
         return JsonResponse({'error': str(e)}, status=500)
+    """
     
 
 @csrf_exempt
