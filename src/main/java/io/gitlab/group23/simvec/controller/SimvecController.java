@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
 public class SimvecController {
@@ -20,6 +22,12 @@ public class SimvecController {
 	@PostMapping("/register")
 	public ResponseEntity<SimvecUser> registerUser(@RequestBody SimvecUser simvecUser) {
 		return ResponseEntity.ok(userService.saveUser(simvecUser));
+	}
+
+	@GetMapping("/get-records")
+	public ResponseEntity<Boolean> getRecords() {
+		List<SimvecUser> users = userService.getAllUsers();
+		return ResponseEntity.ok(!users.isEmpty());
 	}
 
 	@GetMapping("/text-based-search")

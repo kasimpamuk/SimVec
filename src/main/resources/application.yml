@@ -1,2 +1,12 @@
 server:
   port: 8080
+
+spring:
+  datasource:
+    url: "jdbc:postgresql://144.122.71.57:8085/svdemo"
+    username: "postgres"
+    password: "Sago23"
+  jpa:
+    properties:
+      hibernate:
+        dialect: "org.hibernate.dialect.PostgreSQLDialect"
