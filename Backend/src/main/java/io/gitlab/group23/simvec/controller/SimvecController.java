@@ -37,10 +37,18 @@ public class SimvecController {
 		return "Hit text based search endpoint";
 	}
 
-	@GetMapping("/image-based-search")
-	public String imageBasedSearch() {
-		// TODO: Image based search logic
-		return "Hit image based search endpoint";
+	@PostMapping("/image-based-search")
+	public ResponseEntity<byte[]> imageBasedSearch(@RequestParam("file") MultipartFile file) {
+		try {
+			// Directly return the uploaded file as bytes
+			byte[] fileData = file.getBytes();
+			//atakana call
+			//atakanın pathler bytestream
+			//return
+			return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(fileData);
+		} catch (IOException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
 	}
 
 	@GetMapping("/cloud-synchronization")
@@ -50,16 +58,5 @@ public class SimvecController {
 		return "Hit cloud synchronization endpoint";
 	}
 
-
-	@PostMapping("/upload")
-	public ResponseEntity<byte[]> uploadAndDisplayImage(@RequestParam("file") MultipartFile file) {
-		try {
-			// Directly return the uploaded file as bytes
-			byte[] fileData = file.getBytes();
-			return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(fileData);
-		} catch (IOException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-		}
-	}
 
 }
