@@ -1,5 +1,6 @@
 # Django view for handling image or text conversion with external services
 import requests
+import numpy as np
 import csv
 from glob import glob
 from pathlib import Path
@@ -19,8 +20,7 @@ DEVICE = None # if None, use default device (cuda is enabled if available)
 HOST = '127.0.0.1'
 PORT = '19530'
 TOPK = 8 # number of results to return
-DIM = 2048 # dimension of embedding extracted by MODEL
-COLLECTION_NAME = 'reverse_image_search'
+
 INDEX_TYPE = 'IVF_FLAT'
 METRIC_TYPE = 'L2'
 
@@ -52,7 +52,7 @@ p_insert = (
         p_embed.map(('img_path', 'vec'), 'mr', ops.ann_insert.milvus_client(
                     host=HOST,
                     port=PORT,
-                    collection_name=COLLECTION_NAME
+                    collection_name='image_based_search'
                     ))
           .output('mr')
     )
@@ -61,15 +61,41 @@ p_insert = (
 p_search_pre = (
         p_embed.map('vec', ('search_res'), ops.ann_search.milvus_client(
                     host=HOST, port=PORT, limit=TOPK,
-                    collection_name=COLLECTION_NAME))
+                    collection_name='image_based_search'))
                .map('search_res', 'pred', lambda x: [str(Path(y[0]).resolve()) for y in x])
 #                .output('img_path', 'pred')
 )
 p_search = p_search_pre.output('img_path', 'pred')
 
-def serialize_data_queue(data_queue):
-    # Convert DataQueue object to a serializable format (e.g., a list or a dict)
-    return {'data': data_queue}
+################################ Text-based search ##################################
+def read_csv(csv_path, encoding='utf-8-sig'):
+    import csv
+    with open(csv_path, 'r', encoding=encoding) as f:
+        data = csv.DictReader(f)
+        for line in data:
+            yield int(line['id']), line['path']
+
+multiModalInsertPipe = (
+    pipe.input('csv_file')
+    .flat_map('csv_file', ('id', 'path'), read_csv)
+    .map('path', 'img', ops.image_decode.cv2('rgb'))
+    .map('img', 'vec', ops.image_text_embedding.clip(model_name='clip_vit_base_patch16', modality='image', device=0))
+    .map('vec', 'vec', lambda x: x / np.linalg.norm(x))
+    .map(('path', 'vec'), (), ops.ann_insert.milvus_client(host='127.0.0.1', port='19530', collection_name='text_image_search'))
+    .output()
+)
+
+multiModalSearchPipe = (
+    pipe.input('text')
+    .map('text', 'vec', ops.image_text_embedding.clip(model_name='clip_vit_base_patch16', modality='text'))
+    .map('vec', 'vec', lambda x: x / np.linalg.norm(x))
+    .map('vec', 'result', ops.ann_search.milvus_client(host='127.0.0.1', port='19530', collection_name='text_image_search', limit=5))
+    .map('result', 'image_paths', lambda x: [item[0] for item in x])
+    #.map('image_ids', 'images', read_image)
+    .output('text', 'image')
+)
+
+################################ Text-based search ##################################
 
 def search_image_or_text(data, data_type, collection):
     if data_type == 'image':
@@ -80,7 +106,7 @@ def search_image_or_text(data, data_type, collection):
         
     elif data_type == 'text':  
         collection.load()
-        dc = p_search(data)
+        dc = multiModalSearchPipe(data)
         return dc
 
 # Create milvus collection (delete first if exists)
@@ -93,33 +119,42 @@ def create_milvus_collection(collection_name, dim):
                     is_primary=True, auto_id=False),
         FieldSchema(name='embedding', dtype=DataType.FLOAT_VECTOR, description='image embedding vectors', dim=dim)
     ]
-    schema = CollectionSchema(fields=fields, description='reverse image search')
+    schema = CollectionSchema(fields=fields, description='image search')
     collection = Collection(name=collection_name, schema=schema)
 
     index_params = {
         'metric_type': METRIC_TYPE,
         'index_type': INDEX_TYPE,
-        'params': {"nlist": 2048}
+        'params': {"nlist": dim}
     }
     collection.create_index(field_name='embedding', index_params=index_params)
     return collection
 
-def initialize_milvus():
+def initialize_milvus(collection_name, search_type):
     # Connect to Milvus service
     connections.connect(host=HOST, port=PORT)
 
     # Check if the collection already exists
-    if utility.has_collection(COLLECTION_NAME):
-        milvus_collection = Collection(name=COLLECTION_NAME)
+    if utility.has_collection(collection_name):
+        milvus_collection = Collection(name=collection_name)
         #print(f"Using existing collection: {COLLECTION_NAME}")
-    else:
+    elif search_type == 'image':
         # If not, create a new collection
-        milvus_collection = create_milvus_collection(COLLECTION_NAME, DIM)
+        dim = 2048
+        milvus_collection = create_milvus_collection(collection_name, dim)
         #print(f'A new collection created: {COLLECTION_NAME}')
         # Insert data
         p_insert(INSERT_SRC)
         #print('Number of data inserted:', milvus_collection.num_entities)
 
+    elif search_type == 'text':
+        # If not, create a new collection
+        dim = 512
+        milvus_collection = create_milvus_collection(collection_name, dim)
+        print(f'A new collection created: {collection_name}')
+        # Insert data
+        multiModalInsertPipe(INSERT_SRC)
+        #print('Number of data inserted:', milvus_collection.num_entities)
     return milvus_collection
     
 
@@ -127,14 +162,15 @@ def initialize_milvus():
 @require_http_methods(["POST"])
 def image_based_search(request):
     # Connect to Milvus service
-    collection = initialize_milvus()
+    collection_name = 'image_based_search'
+    search_type = 'image'
+    collection = initialize_milvus(collection_name, search_type)
 
     try:
         image = request.body.decode('utf-8')
-        QUERY_SRC = image
-        
+
         # Process image using ML model
-        result_path_list = search_image_or_text(QUERY_SRC, 'image', collection).to_list()
+        result_path_list = search_image_or_text(image, 'image', collection).to_list()
         
         # return result_path_list as response
         return JsonResponse({'message': 'Image processed successfully', 'stored_id': result_path_list})
@@ -148,18 +184,17 @@ def image_based_search(request):
 @require_http_methods(["POST"])
 def text_based_search(request):
     # Placeholder
-    return JsonResponse({'message': 'Hit text_based_search'})
-    # Actual text_based_search logic will be implemented later
-    """
-    # Connect to Milvus service
-    collection = initialize_milvus()
+    #return JsonResponse({'message': 'Hit text_based_search'})
+    
+    collection_name = 'text_based_search'
+    search_type = 'text'
+    collection = initialize_milvus(collection_name, search_type)
 
     try:
         text = request.body.decode('utf-8')
-        QUERY_SRC = text
-        
+
         # Process image using ML model
-        result_path_list = search_image_or_text(QUERY_SRC, 'text', collection).to_list()
+        result_path_list = search_image_or_text(text, 'text', collection).to_list()
         
         # return result_path_list as response
         return JsonResponse({'message': 'Text processed successfully', 'stored_id': result_path_list})
@@ -167,8 +202,7 @@ def text_based_search(request):
     except Exception as e:
         # Handle any errors that occur during the process
         return JsonResponse({'error': str(e)}, status=500)
-    """
-    
+       
 
 @csrf_exempt
 @require_http_methods(["POST"])
