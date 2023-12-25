@@ -40,6 +40,9 @@
 
   .website-logo {
     height: 60px; /* Adjust size as needed */
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
     margin-bottom: 20px;
   }
 
@@ -47,4 +50,12 @@
     max-width: 100%;
     height: auto;
     /* other styles... */
+  }
+
+  .text-submission-container {
+    width: max-content;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 50px;
+    text-align: center;
   }
