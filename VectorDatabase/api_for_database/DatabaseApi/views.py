@@ -28,7 +28,7 @@ METRIC_TYPE = 'L2'
 INSERT_SRC = 'reverse_image_search.csv'
 QUERY_SRC = 'test/*/*.JPEG'
 
-# Load image path
+################################ Image-based search ##################################
 def load_image(x):
     if x.endswith('csv'):
         with open(x) as f:
@@ -66,6 +66,7 @@ p_search_pre = (
 #                .output('img_path', 'pred')
 )
 p_search = p_search_pre.output('img_path', 'pred')
+################################ Image-based search ##################################
 
 ################################ Text-based search ##################################
 def read_csv(csv_path, encoding='utf-8-sig'):
@@ -92,7 +93,7 @@ multiModalSearchPipe = (
     .map('vec', 'result', ops.ann_search.milvus_client(host='127.0.0.1', port='19530', collection_name='text_image_search', limit=5))
     .map('result', 'image_paths', lambda x: [item[0] for item in x])
     #.map('image_ids', 'images', read_image)
-    .output('text', 'image')
+    .output('text', 'image_paths')
 )
 
 ################################ Text-based search ##################################
