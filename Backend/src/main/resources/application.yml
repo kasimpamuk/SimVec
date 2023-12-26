@@ -2,11 +2,11 @@ server:
   port: 8080
 
 vector-database:
-  base-url: "http://localhost:8081"
+  base-url: "http://localhost:8000"
   endpoints:
     image-based-search: "/api/image-based-search"
     text-based-search: "/api/text-based-search"
 
 search:
   image:
-    save-directory: "C:\\Users\\lenovo\\Desktop\\temporary"
+    save-directory: "home/leto/demo_mid"
