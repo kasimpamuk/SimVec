@@ -1,4 +1,4 @@
-# Django view for handling image or text conversion with external services
+# Django view for handling image or text conversion
 import requests
 import csv
 from glob import glob
@@ -71,7 +71,7 @@ def serialize_data_queue(data_queue):
     # Convert DataQueue object to a serializable format (e.g., a list or a dict)
     return {'data': data_queue}
 
-def search_image_or_text(data, data_type, collection):
+def search_image(data, data_type, collection):
     if data_type == 'image':
         # Search for example query image(s)
         collection.load()
@@ -79,9 +79,10 @@ def search_image_or_text(data, data_type, collection):
         return dc
         
     elif data_type == 'text':  
-        collection.load()
-        dc = p_search(data)
-        return dc
+        pass
+        # Placeholder for text processing 
+        
+
 
 # Create milvus collection (delete first if exists)
 def create_milvus_collection(collection_name, dim):
@@ -105,27 +106,20 @@ def create_milvus_collection(collection_name, dim):
     return collection
 
 def initialize_milvus():
-    # Connect to Milvus service
     connections.connect(host=HOST, port=PORT)
 
-    # Check if the collection already exists
-    if utility.has_collection(COLLECTION_NAME):
-        milvus_collection = Collection(name=COLLECTION_NAME)
-        #print(f"Using existing collection: {COLLECTION_NAME}")
-    else:
-        # If not, create a new collection
-        milvus_collection = create_milvus_collection(COLLECTION_NAME, DIM)
-        #print(f'A new collection created: {COLLECTION_NAME}')
-        # Insert data
-        p_insert(INSERT_SRC)
-        #print('Number of data inserted:', milvus_collection.num_entities)
+    # Create collection
+    collection = create_milvus_collection(COLLECTION_NAME, DIM)
+    print(f'A new collection created: {COLLECTION_NAME}')
 
-    return milvus_collection
-    
+    # Insert data
+    p_insert(INSERT_SRC)
+    print('Number of data inserted:', collection.num_entities)
+    return collection
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def image_based_search(request):
+def image_conversion(request):
     # Connect to Milvus service
     collection = initialize_milvus()
 
@@ -134,7 +128,7 @@ def image_based_search(request):
         QUERY_SRC = image
         
         # Process image using ML model
-        result_path_list = search_image_or_text(QUERY_SRC, 'image', collection).to_list()
+        result_path_list = search_image(QUERY_SRC, 'image', collection).to_list()
         
         # return result_path_list as response
         return JsonResponse({'message': 'Image processed successfully', 'stored_id': result_path_list})
@@ -146,54 +140,25 @@ def image_based_search(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def text_based_search(request):
-    # Placeholder
-    return JsonResponse({'message': 'Hit text_based_search'})
-    # Actual text_based_search logic will be implemented later
+def text_conversion(request):
+    #print(request.body.decode('utf-8'))
+    return JsonResponse({'message': 'Text conversion hit'})
     """
-    # Connect to Milvus service
-    collection = initialize_milvus()
-
     try:
+        # Determine if the request has an image or text
         text = request.body.decode('utf-8')
-        QUERY_SRC = text
-        
-        # Process image using ML model
-        result_path_list = search_image_or_text(QUERY_SRC, 'text', collection).to_list()
-        
-        # return result_path_list as response
-        return JsonResponse({'message': 'Text processed successfully', 'stored_id': result_path_list})
-    
-    except Exception as e:
-        # Handle any errors that occur during the process
-        return JsonResponse({'error': str(e)}, status=500)
-    """
-    
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def image_embedding_and_storage(request):
-
-    collection = initialize_milvus()
-    
-    try:
-        # Assuming the request body will contain the path to the image(s)
-        image_paths = request.body.decode('utf-8').split('\n')  
-
-        # Process each image and store the embeddings
-        stored_ids = []
-        for image_path in image_paths:
+        print(text)
+        data = {'text': text}
             
-            # Use the Towhee pipeline to process and insert the image embedding into Milvus
-            p_insert_result = p_insert(image_path)
-            stored_ids.extend(p_insert_result)
+        # Process text using ML model
+        embeddings = get_embeddings(data, 'text')
 
-        # Commit the changes to the Milvus database
-        collection.load()
-
-        # Return the list of Milvus primary keys as a response
-        return JsonResponse({'message': 'Images processed and stored successfully', 'stored_ids': stored_ids})
+        # Store embeddings in external vector database
+        stored_id = store_in_vector_db(embeddings)
+        return JsonResponse({'message': 'Text processed successfully', 'stored_id': stored_id})
+    
+        return JsonResponse({'error': 'No valid text provided'}, status=400)
 
     except Exception as e:
         # Handle any errors that occur during the process
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': str(e)}, status=500) """
