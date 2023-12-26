@@ -1,5 +1,6 @@
 package io.gitlab.group23.simvec.service;
 
+import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.restservice.RestService;
 import io.gitlab.group23.simvec.service.restservice.VectorDatabaseRestService;
 import io.gitlab.group23.simvec.util.ImageUtil;
@@ -27,16 +28,18 @@ public class VectorDatabaseService {
 	@Value("${search.image.save-directory}")
 	private String SEARCH_IMAGE_SAVE_DIRECTORY;
 
-	private final RestService<String, List<String>> vectorDatabaseRequestService = new VectorDatabaseRestService();
+	private final RestService<VectorDatabaseRequest, List<String>> vectorDatabaseRequestService = new VectorDatabaseRestService();
 
 	public List<byte[]> executeImageBasedSearch(MultipartFile image) throws IOException, InterruptedException {
 		ImageUtil.saveImage("searched-image.jpeg", SEARCH_IMAGE_SAVE_DIRECTORY, image.getBytes());
-		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, IMAGE_BASED_SEARCH_ENDPOINT), SEARCH_IMAGE_SAVE_DIRECTORY);
+		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, IMAGE_BASED_SEARCH_ENDPOINT),
+				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY, "5"));
 		return this.getAllImages(similarImagePaths);
 	}
 
 	public List<byte[]> executeTextBasedSearch(String text) throws IOException, InterruptedException {
-		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, TEXT_BASED_SEARCH_ENDPOINT), text);
+		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, TEXT_BASED_SEARCH_ENDPOINT),
+				new VectorDatabaseRequest(text, "5"));
 		return this.getAllImages(similarImagePaths);
 	}
 
