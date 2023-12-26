@@ -4,11 +4,13 @@ import io.gitlab.group23.simvec.model.SimvecUser;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.UserService;
 import io.gitlab.group23.simvec.service.VectorDatabaseService;
+import io.gitlab.group23.simvec.util.ImageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -33,7 +35,7 @@ public class SimvecController {
 
 	@GetMapping("/test")
 	public String test() {
-		return "test hit!";
+		return "Hello World!";
 	}
 
 	@PostMapping("/register")
@@ -54,7 +56,9 @@ public class SimvecController {
 
 	@PostMapping("/text-based-search")
 	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
-		return ResponseEntity.ok(vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest));
+		List<byte[]> images = vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest);
+		System.out.println(Arrays.toString(images.get(0)));
+		return ResponseEntity.ok(images);
 	}
 
 	@GetMapping("/cloud-synchronization")

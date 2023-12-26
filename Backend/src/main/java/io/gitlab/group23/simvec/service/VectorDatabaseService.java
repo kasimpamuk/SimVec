@@ -33,7 +33,7 @@ public class VectorDatabaseService {
 	public List<byte[]> executeImageBasedSearch(MultipartFile image, String topk) throws IOException, InterruptedException {
 		ImageUtil.saveImage("searched-image.jpeg", SEARCH_IMAGE_SAVE_DIRECTORY, image.getBytes());
 		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, IMAGE_BASED_SEARCH_ENDPOINT),
-				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY, topk));
+				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY + "/searched-image.jpeg", topk));
 		return this.getAllImages(similarImagePaths);
 	}
 
