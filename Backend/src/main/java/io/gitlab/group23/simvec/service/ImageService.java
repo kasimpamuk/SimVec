@@ -3,12 +3,23 @@ package io.gitlab.group23.simvec.service;
 
 import org.springframework.stereotype.Service;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 
 @Service
 public class ImageService {
+
+    public void saveImage(byte[] imageData, String filePath) {
+        try (FileOutputStream fileOutputStream = new FileOutputStream(filePath)) {
+            fileOutputStream.write(imageData);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public String getImageData(String imagePath) {
         try {

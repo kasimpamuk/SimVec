@@ -6,3 +6,7 @@ vector-database:
   endpoints:
     image-based-search: "/api/image-based-search"
     text-based-search: "/api/text-based-search"
+
+search:
+  image:
+    save-directory: "C:\\Users\\lenovo\\Desktop\\temporary"
