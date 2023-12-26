@@ -52,7 +52,7 @@ public class SimvecController {
 	}
 
 	@PostMapping("/text-based-search")
-	public ResponseEntity<List<String>> textBasedSearch(@RequestBody String text) throws IOException, InterruptedException {
+	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody String text) throws IOException, InterruptedException {
 		return ResponseEntity.ok(vectorDatabaseService.executeTextBasedSearch(text));
 	}
 

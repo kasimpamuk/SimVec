@@ -22,7 +22,7 @@ public class VectorDatabaseService {
 	private String IMAGE_BASED_SEARCH_ENDPOINT;
 
 	@Value("${vector-database.endpoints.text-based-search}")
-	private String textBasedSearchEndpoint;
+	private String TEXT_BASED_SEARCH_ENDPOINT;
 
 	@Value("${search.image.save-directory}")
 	private String SEARCH_IMAGE_SAVE_DIRECTORY;
@@ -35,8 +35,9 @@ public class VectorDatabaseService {
 		return this.getAllImages(similarImagePaths);
 	}
 
-	public List<String> executeTextBasedSearch(String text) throws IOException, InterruptedException {
-		return vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, textBasedSearchEndpoint), text);
+	public List<byte[]> executeTextBasedSearch(String text) throws IOException, InterruptedException {
+		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, TEXT_BASED_SEARCH_ENDPOINT), text);
+		return this.getAllImages(similarImagePaths);
 	}
 
 	private URI getURI(String baseUrl, String endpoint) {
