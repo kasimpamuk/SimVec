@@ -41,10 +41,10 @@ public class SimvecController {
 		return ResponseEntity.ok(userService.saveUser(simvecUser));
 	}
 
-	@PostMapping("/image-based-search")
-	public ResponseEntity<List<byte[]>> imageBasedSearch(@RequestParam("file") MultipartFile image) {
+	@PostMapping("/image-based-search/{topk}")
+	public ResponseEntity<List<byte[]>> imageBasedSearch(@RequestParam("file") MultipartFile image, @PathVariable(name = "topk") String topk) {
 		try {
-			return ResponseEntity.ok(vectorDatabaseService.executeImageBasedSearch(image));
+			return ResponseEntity.ok(vectorDatabaseService.executeImageBasedSearch(image, topk));
 		} catch (IOException e) {
 			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(null);
 		} catch (InterruptedException e) {
