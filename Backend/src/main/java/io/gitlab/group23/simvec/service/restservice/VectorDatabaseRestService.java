@@ -3,6 +3,7 @@ package io.gitlab.group23.simvec.service.restservice;
 import com.google.gson.Gson;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.model.VectorDatabaseResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,9 +15,10 @@ import java.net.http.HttpResponse;
 import java.util.List;
 
 @Service
+@Slf4j
 public class VectorDatabaseRestService implements RestService<VectorDatabaseRequest, List<String>> {
 
-
+	private final Gson gson = new Gson();
 
 	@Override
 	public List<String> sendGetRequest(URI uri) {
@@ -26,10 +28,8 @@ public class VectorDatabaseRestService implements RestService<VectorDatabaseRequ
 	@Override
 	public List<String> sendPostRequest(URI uri, VectorDatabaseRequest entity) throws IOException, InterruptedException {
 
-		Gson gson = new Gson();
 		String jsonRequest = gson.toJson(entity);
-
-		System.out.println(jsonRequest);
+		log.info("JSON request to be send: " + jsonRequest);
 
 		HttpRequest postRequest = HttpRequest.newBuilder()
 				.uri(uri)
@@ -39,29 +39,12 @@ public class VectorDatabaseRestService implements RestService<VectorDatabaseRequ
 		HttpClient httpClient = HttpClient.newHttpClient();
 
 		HttpResponse<String> postResponse = httpClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
-		System.out.println(postResponse.body());
+		log.info("JSON response received: " + postResponse.body());
 
 		VectorDatabaseResponse vectorDatabaseResponse = gson.fromJson(postResponse.body(), VectorDatabaseResponse.class);
+		log.info("Vector Database Response: " + vectorDatabaseResponse.toString());
 
-		System.out.println(vectorDatabaseResponse.getSuccess());
-
-		return List.of("alper");
+		return vectorDatabaseResponse.getResults();
 	}
-
-//	private final RestTemplate restTemplate = new RestTemplate();
-//
-//	@Override
-//	public List<String> sendGetRequest(URI uri) {
-//		String[] responses = restTemplate.getForObject(uri, String[].class);
-//		if (responses == null) throw new RuntimeException("Cannot receive response in GET request");
-//		return List.of(responses);
-//	}
-//
-//	@Override
-//	public List<String> sendPostRequest(URI uri, String requestBody) {
-//		String[] responses = restTemplate.postForObject(uri, requestBody, String[].class);
-//		if (responses == null) throw new RuntimeException("Cannot receive response in POST request");
-//		return List.of(responses);
-//	}
 
 }

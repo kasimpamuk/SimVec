@@ -37,9 +37,8 @@ public class VectorDatabaseService {
 		return this.getAllImages(similarImagePaths);
 	}
 
-	public List<byte[]> executeTextBasedSearch(String text) throws IOException, InterruptedException {
-		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, TEXT_BASED_SEARCH_ENDPOINT),
-				new VectorDatabaseRequest(text, "5"));
+	public List<byte[]> executeTextBasedSearch(VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
+		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, TEXT_BASED_SEARCH_ENDPOINT), vectorDatabaseRequest);
 		return this.getAllImages(similarImagePaths);
 	}
 

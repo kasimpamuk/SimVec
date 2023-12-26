@@ -1,6 +1,7 @@
 package io.gitlab.group23.simvec.controller;
 
 import io.gitlab.group23.simvec.model.SimvecUser;
+import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.UserService;
 import io.gitlab.group23.simvec.service.VectorDatabaseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,8 +53,8 @@ public class SimvecController {
 	}
 
 	@PostMapping("/text-based-search")
-	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody String text) throws IOException, InterruptedException {
-		return ResponseEntity.ok(vectorDatabaseService.executeTextBasedSearch(text));
+	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
+		return ResponseEntity.ok(vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest));
 	}
 
 	@GetMapping("/cloud-synchronization")

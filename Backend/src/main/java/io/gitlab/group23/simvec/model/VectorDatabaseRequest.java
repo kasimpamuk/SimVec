@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class VectorDatabaseRequest {
 
-	private String imagePath;
-	private String numberOfDesiredImages;
+	private String input;
+	private String topk;
 
 }
