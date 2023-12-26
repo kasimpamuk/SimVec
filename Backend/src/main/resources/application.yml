@@ -4,5 +4,5 @@ server:
 vector-database:
   base-url: "http://localhost:8081"
   endpoints:
-    image-based-search: "/api/image_based_search"
-    text-based-search: "/api/text_based_search"
+    image-based-search: "/api/image-based-search"
+    text-based-search: "/api/text-based-search"
