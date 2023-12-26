@@ -42,14 +42,23 @@ public class SimvecController {
 		return ResponseEntity.ok(userService.saveUser(simvecUser));
 	}
 
-	@PostMapping("/image-based-search")
-	public ResponseEntity<List<String>> imageBasedSearch(@RequestBody String imagePath) throws IOException, InterruptedException {
-		return ResponseEntity.ok(vectorDatabaseService.executeImageBasedSearch(imagePath));
-	}
-
 	@PostMapping("/text-based-search")
 	public ResponseEntity<List<String>> textBasedSearch(@RequestBody String text) throws IOException, InterruptedException {
 		return ResponseEntity.ok(vectorDatabaseService.executeTextBasedSearch(text));
+	}
+
+	@PostMapping("/image-based-search")
+	public ResponseEntity<byte[]> imageBasedSearch(@RequestParam("file") MultipartFile file) {
+		try {
+			// Directly return the uploaded file as bytes
+			byte[] fileData = file.getBytes();
+			//atakana call
+			//atakanın pathler bytestream
+			//return
+			return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(fileData);
+		} catch (IOException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
 	}
 
 	@GetMapping("/cloud-synchronization")
@@ -57,18 +66,6 @@ public class SimvecController {
 		// This can be implemented as a cron job
 		// TODO: Cloud synchronization logic
 		return "Hit cloud synchronization endpoint";
-	}
-
-
-	@PostMapping("/upload")
-	public ResponseEntity<byte[]> uploadAndDisplayImage(@RequestParam("file") MultipartFile file) {
-		try {
-			// Directly return the uploaded file as bytes
-			byte[] fileData = file.getBytes();
-			return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(fileData);
-		} catch (IOException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-		}
 	}
 
 }
