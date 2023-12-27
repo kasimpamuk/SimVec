@@ -168,10 +168,14 @@ def image_based_search(request):
         image = data.get('input')
         global TOPK
         TOPK = data.get('topk')
+        TOPK = int(TOPK)
 
         # Process image using ML model
         result_path_list = search_image_or_text(image, 'image', collection).to_list()
         result_path_list = result_path_list[0][1]
+        for i in range(len(result_path_list)):
+            result_path_list[i] = result_path_list[i]
+            print(result_path_list[i]) 
         # return result_path_list as response
         return JsonResponse({'message': 'Image processed successfully', 'results': result_path_list})
     
@@ -196,10 +200,14 @@ def text_based_search(request):
         text = data.get('input')
         global TOPK
         TOPK = data.get('topk')
+        TOPK = int(TOPK)
         
         # Process image using ML model
         result_path_list = search_image_or_text(text, 'text', collection).to_list()
         result_path_list = result_path_list[0][1]
+        for i in range(len(result_path_list)):
+            result_path_list[i] = result_path_list[i][2:]
+            result_path_list[i] = "/home/leto/" + result_path_list[i] 
         
         # return result_path_list as response
         return JsonResponse({'message': 'Text processed successfully', 'results': result_path_list})
@@ -245,3 +253,4 @@ def image_embedding_and_storage(request):
     except Exception as e:
         # Handle any errors that occur during the process
         return JsonResponse({'error': str(e)},status=500)
+

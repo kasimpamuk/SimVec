@@ -2,12 +2,39 @@ import React, { useState } from 'react';
 import './App.css';
 import logo from './simvec.png';
 
+const base64ToBlob = (base64) => {
+  // This will convert URL-safe base64 to standard base64 if necessary.
+  const standardBase64 = base64.replace(/-/g, '+').replace(/_/g, '/');
+  const parts = standardBase64.split(';base64,');
+  
+  if (parts.length === 2) {
+    const mimePart = parts[0];
+    const base64Part = parts[1];
+    const byteString = atob(base64Part); // Decode the base64 string
+    const mimeString = mimePart.split(':')[1];
+
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([ab], { type: mimeString });
+  } else {
+    throw new Error('The provided string does not seem to be correctly Base64 encoded.');
+  }
+};
+
 function ImageUpload() {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [imageList, setImageList] = useState([]);
   const [text, setText] = useState('');
-
+  const handleTextChange = (e) => {
+    setText(e.target.value);
+  };
+  
+  
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
@@ -22,46 +49,48 @@ function ImageUpload() {
     }
     const formData = new FormData();
     formData.append('file', image);
-
+  
     try {
-      const response = await fetch('http://localhost:8080/api/image-based-search', {
+      const response = await fetch('http://localhost:8080/api/image-based-search/5', {
         method: 'POST',
         body: formData,
       });
-      const imageBlobs = await response.json(); // Assuming the response is an array of blobs
-      const urls = imageBlobs.map(blob => URL.createObjectURL(blob));
-      setImageList(urls);
-    } catch (error) {
-      alert("Error uploading image");
-    }
-  };
+    const base64Images = await response.json();
+    const urls = base64Images.map(base64 => `data:image/jpeg;base64,${base64}`);
+    setImageList(urls);
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    alert("Error uploading image");
+  }
+};
 
-  const handleTextChange = (e) => {
-    setText(e.target.value);
+  const data = {
+    input: text,
+    topk: "5"
   };
-
   const handleTextSubmit = async (e) => {
     e.preventDefault();
     if (!text) {
       alert("Please enter some text");
       return;
     }
-
+  
     try {
       const response = await fetch('http://localhost:8080/api/text-based-search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify(data)
       });
-      const imageBlobs = await response.json(); // Assuming the response is an array of blobs
-      const urls = imageBlobs.map(blob => URL.createObjectURL(blob));
-      setImageList(urls);
-    } catch (error) {
-      alert("Error processing text");
-    }
-  };
+      const base64Images = await response.json();
+    const urls = base64Images.map(base64 => `data:image/jpeg;base64,${base64}`);
+    setImageList(urls);
+  } catch (error) {
+    console.error("Error processing text:", error);
+    alert("Error processing text");
+  }
+};
 
   return (
     <div className="container">

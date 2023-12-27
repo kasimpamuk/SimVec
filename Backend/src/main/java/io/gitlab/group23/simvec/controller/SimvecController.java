@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -57,7 +58,9 @@ public class SimvecController {
 	@PostMapping("/text-based-search")
 	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
 		List<byte[]> images = vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest);
-		System.out.println(Arrays.toString(images.get(0)));
+		System.out.println(Base64.getEncoder().encodeToString(images.get(0)));
+		// System.out.println(Arrays.toString(images.get(0)));
+		System.out.println(ResponseEntity.ok(images));
 		return ResponseEntity.ok(images);
 	}
 
