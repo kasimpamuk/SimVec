@@ -1,5 +1,7 @@
 package io.gitlab.group23.simvec.config.authentication;
 
+import io.gitlab.group23.simvec.service.authentication.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,26 +21,27 @@ public class SecurityConfig {
 	private final CustomUserDetailsService userDetailsService;
 	private final JwtAuthorizationFilter jwtAuthorizationFilter;
 
+	@Autowired
 	public SecurityConfig(CustomUserDetailsService customUserDetailsService, JwtAuthorizationFilter jwtAuthorizationFilter) {
 		this.userDetailsService = customUserDetailsService;
 		this.jwtAuthorizationFilter = jwtAuthorizationFilter;
-
 	}
 
 	@Bean
-	public AuthenticationManager authenticationManager(HttpSecurity http, PasswordEncoder noOpPasswordEncoder)
+	public AuthenticationManager authenticationManager(HttpSecurity http, PasswordEncoder passwordEncoder)
 			throws Exception {
 		AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-		authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(noOpPasswordEncoder);
+		authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
 		return authenticationManagerBuilder.build();
 	}
+
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
 		http.csrf().disable()
 				.authorizeRequests()
-				.requestMatchers("/rest/auth/**").permitAll()
+				.requestMatchers("/api/authentication/**").permitAll()
 				.anyRequest().authenticated()
 				.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				.and().addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);

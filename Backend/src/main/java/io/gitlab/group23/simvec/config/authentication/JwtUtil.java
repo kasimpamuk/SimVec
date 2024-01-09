@@ -3,9 +3,9 @@ package io.gitlab.group23.simvec.config.authentication;
 import io.gitlab.group23.simvec.model.SimvecUser;
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
-import javax.naming.AuthenticationException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -13,23 +13,19 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class JwtUtil {
 
-
-	private final String secret_key = "mysecretkey";
-	private long accessTokenValidity = 60*60*1000;
-
-	private final JwtParser jwtParser;
-
+	private final String secret_key = "my_secret_key";
+	private final long accessTokenValidity = 60*60*1000;
 	private final String TOKEN_HEADER = "Authorization";
 	private final String TOKEN_PREFIX = "Bearer ";
+
+	private final JwtParser jwtParser;
 
 	public JwtUtil(){
 		this.jwtParser = Jwts.parser().setSigningKey(secret_key);
 	}
 
-	public String createToken(SimvecUser user) {
-		Claims claims = Jwts.claims().setSubject(user.getEmail());
-		claims.put("firstName",user.getEmail());
-		claims.put("lastName",user.getUserName());
+	public String createToken(SimvecUser catanUser) {
+		Claims claims = Jwts.claims().setSubject(catanUser.getEmail());
 		Date tokenCreateTime = new Date();
 		Date tokenValidity = new Date(tokenCreateTime.getTime() + TimeUnit.MINUTES.toMillis(accessTokenValidity));
 		return Jwts.builder()
@@ -72,7 +68,7 @@ public class JwtUtil {
 		try {
 			return claims.getExpiration().after(new Date());
 		} catch (Exception e) {
-			throw e;
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -83,5 +79,6 @@ public class JwtUtil {
 	private List<String> getRoles(Claims claims) {
 		return (List<String>) claims.get("roles");
 	}
+
 
 }
