@@ -161,8 +161,10 @@ def image_based_search(request):
     # Connect to Milvus service
     collection_name = 'image_based_search'
     search_type = 'image'
+    print("image_based_search - line 164")
     collection = initialize_milvus(collection_name, search_type)
-
+    print("image_based_search - line 166")
+    
     try:
         data = json.loads(request.body)
         image = data.get('input')
