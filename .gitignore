@@ -204,3 +204,5 @@ cython_debug/
 
 **/.DS_Store/*
 
+node_modules
+
