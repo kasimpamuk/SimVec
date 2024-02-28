@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './RegisterPage.css'; // Make sure to create a corresponding CSS file
+import logo from './simvec.png';
 
 function RegisterPage() {
   const [name, setName] = useState('');
@@ -13,6 +14,10 @@ function RegisterPage() {
   };
 
   return (
+    <>
+    <div className='header'>
+        <img src={logo} alt="Logo" className="website-logo" />
+      </div>
     <div className="register-container">
       <form onSubmit={handleSubmit} className="register-form">
         <h2 className="register-heading">Register</h2>
@@ -56,6 +61,7 @@ function RegisterPage() {
         <button type="submit" className="register-btn">Register</button>
       </form>
     </div>
+    </>
   );
 }
 
