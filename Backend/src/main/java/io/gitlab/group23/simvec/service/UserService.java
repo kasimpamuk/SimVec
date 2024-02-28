@@ -20,12 +20,6 @@ public class UserService {
 		this.userRepository = userRepository;
 	}
 
-	public SimvecUser getUserByEmail(String email) {
-		Optional<SimvecUser> user = userRepository.findByEmail(email);
-		if (user.isPresent()) return user.get();
-		throw new RuntimeException("No user exists with the given email!");
-	}
-
 	public List<SimvecUser> getAllUsers() {
 		return userRepository.findAll();
 	}
