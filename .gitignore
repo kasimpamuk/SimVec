@@ -35,3 +35,6 @@ build/
 .idea/
 
 
+VectorDatabase/api_for_database/reverse_image_search/
+VectorDatabase/api_for_database/.DS_Store
+node_modules
