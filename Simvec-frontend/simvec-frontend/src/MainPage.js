@@ -129,7 +129,7 @@ function ImageUpload() {
             />
           </div>
 
-          <button type="submit" className="upload-btn">Upload</button>
+          <button type="submit" className="upload-btn">Search With Image</button>
         </form>
       </div>
 
@@ -141,7 +141,19 @@ function ImageUpload() {
             placeholder="Enter text here"
             className="text-input"
           />
-          <button type="submit" className="submit-btn">Submit Text</button>
+          {/* Number of Images Selection */}
+          <div className="number-selection-container">
+            <label htmlFor="number-input" className="number-input-label">Number of Images:</label>
+            <input 
+              id="number-input"
+              type="number" 
+              value={searchNumber}
+              onChange={handleNumberChange}
+              className="number-input"
+              min="0"
+            />
+          </div>
+          <button type="submit" className="submit-btn">Search With Text</button>
         </form>
       </div>
       
