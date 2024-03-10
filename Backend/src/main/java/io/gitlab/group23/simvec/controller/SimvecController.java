@@ -2,6 +2,7 @@ package io.gitlab.group23.simvec.controller;
 
 import io.gitlab.group23.simvec.model.SimvecUser;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
+import io.gitlab.group23.simvec.service.TranslateText;
 import io.gitlab.group23.simvec.service.UserService;
 import io.gitlab.group23.simvec.service.VectorDatabaseService;
 import io.gitlab.group23.simvec.util.ImageUtil;
@@ -27,12 +28,14 @@ public class SimvecController {
 
 	private final UserService userService;
 	private final VectorDatabaseService vectorDatabaseService;
+	private final TranslateText translateText;
 
 	@Autowired
-	public SimvecController(UserService userService, VectorDatabaseService vectorDatabaseService) {
+	public SimvecController(UserService userService, VectorDatabaseService vectorDatabaseService, TranslateText translateText) {
 		this.userService = userService;
 		this.vectorDatabaseService = vectorDatabaseService;
-	}
+        this.translateText = translateText;
+    }
 
 	@GetMapping("/test")
 	public String test() {
@@ -57,6 +60,8 @@ public class SimvecController {
 
 	@PostMapping("/text-based-search")
 	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
+		String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
+		vectorDatabaseRequest.setInput(translatedText);
 		List<byte[]> images = vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest);
 		System.out.println(Base64.getEncoder().encodeToString(images.get(0)));
 		// System.out.println(Arrays.toString(images.get(0)));
