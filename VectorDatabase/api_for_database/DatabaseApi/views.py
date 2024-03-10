@@ -232,11 +232,11 @@ def image_based_search(request):
         query_image = Image.open(query_image_path).convert('RGB')  
         query_inputs = processor(images=query_image, return_tensors="pt")
         query_image_features = model.get_image_features(**query_inputs)
-        embedding = query_image_features.squeeze(0).detach().numpy().tolist()
+        image_embedding = query_image_features.squeeze(0).detach().numpy().tolist()
 
 
         results = collection.search(
-        data=[embedding], 
+        data=[image_embedding], 
         anns_field="embedding", 
         # the sum of `offset` in `param` and `limit` 
         # should be less than 16384.
@@ -277,29 +277,62 @@ def image_based_search(request):
 def text_based_search(request):
     # Placeholder
     #return JsonResponse({'message': 'Hit text_based_search'})
-    
-    collection_name = 'text_based_search'
-    search_type = 'text'
-    #print('Initializing Milvus collection for text-based search')
+
+    collection_name = ' '
+    search_type = 'image'
     collection = initialize_milvus(collection_name)
+    collection.load()
 
     try:
         data = json.loads(request.body)
-        text = data.get('input')
-        global TOPK
-        TOPK = data.get('topk')
-        TOPK = int(TOPK)
+        topk = data.get('topk')
+        query_text = data.get('input')
+        #query_image_path = data.get('input')
+        #query_image = Image.open(query_image_path).convert('RGB')  
+        text_inputs = processor(text=query_text, return_tensors="pt", padding=True, truncation=True, max_length=77)
+        query_text_features = model.get_text_features(**text_inputs)
+        text_embedding = query_text_features.squeeze(0).detach().numpy().tolist()
+
+        results = collection.search(
+        data=[text_embedding], 
+        anns_field="embedding", 
+        # the sum of `offset` in `param` and `limit` 
+        # should be less than 16384.
+        param=search_params,
+        limit=(int) (topk),
+        expr=None,
+        )
+        result_list = results[0].ids
         
-        # Process image using ML model
-        result_path_list = search_image_or_text(text, 'text', collection).to_list()
-        result_path_list = result_path_list[0][1]
-        for i in range(len(result_path_list)):
-            result_path_list[i] = result_path_list[i][2:]
-            result_path_list[i] = "/home/leto/" + result_path_list[i] 
-        
-        # return result_path_list as response
-        return JsonResponse({'message': 'Text processed successfully', 'results': result_path_list})
-    
+        for i in range(len(result_list)):
+            result_list[i] = result_list[i][1:]
+            result_list[i] = "/home/kasim/simvec/simvec/VectorDatabase/api_for_database/" + result_list[i]
+        print(result_list)
+        return JsonResponse({'message': 'Image processed successfully', 'results': result_list})
+
+        """
+        collection_name = 'text_based_search'
+        search_type = 'text'
+        #print('Initializing Milvus collection for text-based search')
+        collection = initialize_milvus(collection_name)
+
+        try:
+            data = json.loads(request.body)
+            text = data.get('input')
+            global TOPK
+            TOPK = data.get('topk')
+            TOPK = int(TOPK)
+            
+            # Process image using ML model
+            result_path_list = search_image_or_text(text, 'text', collection).to_list()
+            result_path_list = result_path_list[0][1]
+            for i in range(len(result_path_list)):
+                result_path_list[i] = result_path_list[i][2:]
+                result_path_list[i] = "/home/leto/" + result_path_list[i] 
+            
+            # return result_path_list as response
+            return JsonResponse({'message': 'Text processed successfully', 'results': result_path_list})
+        """
     except Exception as e:
         # Handle any errors that occur during the process
         return JsonResponse({'error': str(e)}, status=500)
