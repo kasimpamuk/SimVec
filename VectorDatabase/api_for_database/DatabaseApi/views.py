@@ -13,6 +13,29 @@ from towhee import pipe, ops, DataCollection
 from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Collection, utility
 #from django.core.files.storage import FileSystemStorage
 
+##############
+from PIL import Image
+import pandas as pd
+import torch
+from transformers import CLIPProcessor, CLIPModel
+
+# Load the dataset
+dataset_path = 'reverse_image_search.csv'  # Replace with your dataset path
+df = pd.read_csv(dataset_path)
+
+# Load the CLIP model and processor
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+
+
+
+
+
+##############
+
+
+
 # Towhee parameters
 MODEL = 'resnet50'
 DEVICE = None # if None, use default device (cuda is enabled if available)
@@ -22,12 +45,13 @@ HOST = '127.0.0.1'
 PORT = '19530'
 TOPK = None # number of results to return
 
+DIM = 512 
 INDEX_TYPE = 'IVF_FLAT'
 METRIC_TYPE = 'L2'
 
 # path to csv (column_1 indicates image path) OR a pattern of image paths
 INSERT_SRC = 'reverse_image_search.csv'
-QUERY_SRC = 'test/*/*.JPEG'
+QUERY_SRC = './test/*/*.JPEG'
 
 # Load image path
 def load_image(x):
@@ -64,12 +88,13 @@ def search_image_or_text(data, data_type, collection):
         p_search_pre = (
                 p_embed.map('vec', ('search_res'), ops.ann_search.milvus_client(
                             host=HOST, port=PORT, limit=TOPK,
-                            collection_name='image_based_search'))
+                            collection_name='image_based_search_transformers'))
                     .map('search_res', 'pred', lambda x: [str(Path(y[0]).resolve()) for y in x])
         #                .output('img_path', 'pred')
         )
         p_search = p_search_pre.output('img_path', 'pred')
         dc = p_search(data)
+        # ahmak
         return dc
         
     elif data_type == 'text':  
@@ -87,14 +112,14 @@ def search_image_or_text(data, data_type, collection):
         return dc
 
 # Create milvus collection (delete first if exists)
-def create_milvus_collection(collection_name, dim):
+def create_milvus_collection(collection_name):
     if utility.has_collection(collection_name):
         utility.drop_collection(collection_name)
     
     fields = [
         FieldSchema(name='path', dtype=DataType.VARCHAR, description='path to image', max_length=500, 
                     is_primary=True, auto_id=False),
-        FieldSchema(name='embedding', dtype=DataType.FLOAT_VECTOR, description='image embedding vectors', dim=dim)
+        FieldSchema(name='embedding', dtype=DataType.FLOAT_VECTOR, description='image embedding vectors', dim=DIM)
     ]
     schema = CollectionSchema(fields=fields, description='image search')
     collection = Collection(name=collection_name, schema=schema)
@@ -102,10 +127,27 @@ def create_milvus_collection(collection_name, dim):
     index_params = {
         'metric_type': METRIC_TYPE,
         'index_type': INDEX_TYPE,
-        'params': {"nlist": dim}
+        'params': {"nlist": DIM}
     }
     collection.create_index(field_name='embedding', index_params=index_params)
     return collection
+
+def create_milvus_entities():
+    embeddings = []
+
+    for index, row in df.iterrows():
+        image_path = row['path']  # Assuming the path is in a column named 'path'
+        image = Image.open(image_path).convert('RGB')  # Ensure image is in RGB
+        inputs = processor(images=image, return_tensors="pt")
+        image_features = model.get_image_features(**inputs)
+        # Ensure the tensor is detached from the computational graph before converting
+        embeddings.append(image_features.squeeze(0).detach().numpy().tolist())
+
+    paths = df['path'].tolist()
+    entities = [[path for path in paths],
+                [embedding for embedding in embeddings]]
+    return entities
+
 
 def initialize_milvus(collection_name, search_type):
     # Connect to Milvus service
@@ -115,10 +157,25 @@ def initialize_milvus(collection_name, search_type):
     #print(utility.list_collections())
     
     # Check if the collection already exists
-    if utility.has_collection(collection_name):
-        print(f"Using existing collection: {collection_name}")
-        milvus_collection = Collection(name=collection_name)
-        
+    if(utility.has_collection(collection_name)):
+        collection = Collection(collection_name)
+        if(not collection.is_empty):
+            print(f"Using existing collection: {collection_name}")
+        else:
+            print(f"Collection {collection_name} exists but is empty")
+            collection = create_milvus_collection(collection_name)
+            entities = create_milvus_entities()
+            mr = collection.insert(entities)
+            print("mr: ", mr)
+    else:
+        print(f"Creating new collection: {collection_name}")
+        collection = create_milvus_collection(collection_name)
+        entities = create_milvus_entities()
+        mr = collection.insert(entities)
+        print("mr: ", mr)
+    return collection
+
+    """    
     elif search_type == 'image':
         # If not, create a new collection
         dim = 2048
@@ -151,7 +208,7 @@ def initialize_milvus(collection_name, search_type):
             .output()
         )
         multiModalInsertPipe(INSERT_SRC)
-        
+    """
     return milvus_collection
     
 
@@ -159,7 +216,7 @@ def initialize_milvus(collection_name, search_type):
 @require_http_methods(["POST"])
 def image_based_search(request):
     # Connect to Milvus service
-    collection_name = 'image_based_search'
+    collection_name = 'image_based_search_transformers'
     search_type = 'image'
     collection = initialize_milvus(collection_name, search_type)
 
