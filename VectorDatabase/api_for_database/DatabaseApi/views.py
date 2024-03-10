@@ -28,7 +28,12 @@ model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 
-
+search_params = {
+    "metric_type": "L2", 
+    "offset": 0, 
+    "ignore_growing": False, 
+    "params": {"nprobe": 10}
+}
 
 
 
@@ -94,7 +99,6 @@ def search_image_or_text(data, data_type, collection):
         )
         p_search = p_search_pre.output('img_path', 'pred')
         dc = p_search(data)
-        # ahmak
         return dc
         
     elif data_type == 'text':  
@@ -149,7 +153,7 @@ def create_milvus_entities():
     return entities
 
 
-def initialize_milvus(collection_name, search_type):
+def initialize_milvus(collection_name):
     # Connect to Milvus service
     connections.connect(host=HOST, port=PORT)
 
@@ -218,11 +222,38 @@ def image_based_search(request):
     # Connect to Milvus service
     collection_name = 'image_based_search_transformers'
     search_type = 'image'
-    collection = initialize_milvus(collection_name, search_type)
+    collection = initialize_milvus(collection_name)
+    collection.load()
 
     try:
         data = json.loads(request.body)
-        image = data.get('input')
+        topk = data.get('topk')
+        query_image_path = data.get('input')
+        query_image = Image.open(query_image_path).convert('RGB')  
+        query_inputs = processor(images=query_image, return_tensors="pt")
+        query_image_features = model.get_image_features(**query_inputs)
+        embedding = query_image_features.squeeze(0).detach().numpy().tolist()
+
+
+        results = collection.search(
+        data=[embedding], 
+        anns_field="embedding", 
+        # the sum of `offset` in `param` and `limit` 
+        # should be less than 16384.
+        param=search_params,
+        limit=(int) (topk),
+        expr=None,
+        )
+        result_list = results[0].ids
+        
+        for i in range(len(result_list)):
+            result_list[i] = result_list[i][1:]
+            result_list[i] = "/home/kasim/simvec/simvec/VectorDatabase/api_for_database/" + result_list[i]
+        print(result_list)
+        return JsonResponse({'message': 'Image processed successfully', 'results': result_list})
+
+
+        """
         global TOPK
         TOPK = data.get('topk')
         TOPK = int(TOPK)
@@ -235,7 +266,7 @@ def image_based_search(request):
             print(result_path_list[i]) 
         # return result_path_list as response
         return JsonResponse({'message': 'Image processed successfully', 'results': result_path_list})
-    
+        """
     except Exception as e:
         # Handle any errors that occur during the process
         return JsonResponse({'error': str(e)}, status=500)
@@ -250,7 +281,7 @@ def text_based_search(request):
     collection_name = 'text_based_search'
     search_type = 'text'
     #print('Initializing Milvus collection for text-based search')
-    collection = initialize_milvus(collection_name, search_type)
+    collection = initialize_milvus(collection_name)
 
     try:
         data = json.loads(request.body)
