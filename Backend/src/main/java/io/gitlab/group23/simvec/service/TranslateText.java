@@ -14,9 +14,7 @@ public class TranslateText {
 
     // Set and pass variables to overloaded translateText() method for translation.
     public String translateText() throws IOException {
-        // TODO(developer): Replace these variables before running the sample.
         String projectId =  "hidden-marker-416811";
-        // Supported Languages: https://cloud.google.com/translate/docs/languages
         String targetLanguage = "en";
         String text = "¡Hola Mundo!";
         String t = "";
