@@ -17,12 +17,14 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+	private static final String PUBLIC_ENDPOINTS = "/api/**";
+
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
 				.csrf(AbstractHttpConfigurer::disable) // Disabling CSRF protection using the new method-based configuration
 				.authorizeHttpRequests(authz -> authz
-						.requestMatchers("/api/**").permitAll()  // Permit all requests to '/api/*'
+						.requestMatchers(PUBLIC_ENDPOINTS).permitAll()  // Permit all requests to '/api/*'
 						.anyRequest().authenticated()  // Require authentication for any other request
 				)
 				.httpBasic(httpBasic -> {});  // Enable HTTP Basic Authentication using the new method-based configuration
