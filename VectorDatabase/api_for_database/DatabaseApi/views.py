@@ -24,8 +24,8 @@ dataset_path = 'reverse_image_search.csv'  # Replace with your dataset path
 df = pd.read_csv(dataset_path)
 
 # Load the CLIP model and processor
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
+processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
 
 
 search_params = {
@@ -278,8 +278,7 @@ def text_based_search(request):
     # Placeholder
     #return JsonResponse({'message': 'Hit text_based_search'})
 
-    collection_name = ' '
-    search_type = 'image'
+    collection_name = 'image_based_search_transformers'
     collection = initialize_milvus(collection_name)
     collection.load()
 
@@ -303,6 +302,8 @@ def text_based_search(request):
         expr=None,
         )
         result_list = results[0].ids
+        distances = results[0].distances
+        print(distances)
         
         for i in range(len(result_list)):
             result_list[i] = result_list[i][1:]
