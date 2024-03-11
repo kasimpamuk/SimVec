@@ -41,6 +41,7 @@ public class VectorDatabaseRestService implements RestService<VectorDatabaseRequ
 		HttpResponse<String> postResponse = httpClient.send(postRequest, HttpResponse.BodyHandlers.ofString());
 		log.info("JSON response received: " + postResponse.body());
 
+		System.out.println(postResponse.body());
 		VectorDatabaseResponse vectorDatabaseResponse = gson.fromJson(postResponse.body(), VectorDatabaseResponse.class);
 		log.info("Vector Database Response: " + vectorDatabaseResponse.toString());
 
