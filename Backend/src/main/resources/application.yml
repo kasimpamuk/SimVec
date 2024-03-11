@@ -10,3 +10,16 @@ vector-database:
 search:
   image:
     save-directory: "/home/leto/demo_mid"
+
+spring:
+  mail:
+    host: smtp.office365.com
+    port: 587
+    username: simvec_project@outlook.com
+    password: simvec_password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

@@ -18,4 +18,8 @@ public class AuthenticationService {
 		return registerService.registerUser(simvecUser);
 	}
 
+	public String verifyUserEmail(String token) {
+		return registerService.verifyUserEmail(token);
+	}
+
 }

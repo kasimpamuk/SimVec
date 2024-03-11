@@ -23,4 +23,7 @@ public class SimvecUser {
 	@ValidPassword
 	private String password;
 
+	private boolean isEmailVerified;
+	private String emailVerificationToken;
+
 }

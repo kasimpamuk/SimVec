@@ -6,6 +6,7 @@ import io.gitlab.group23.simvec.service.TranslateText;
 import io.gitlab.group23.simvec.service.UserService;
 import io.gitlab.group23.simvec.service.VectorDatabaseService;
 import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -21,9 +22,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+// TODO: Move authentication related endpoints to another controller
+
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "http://localhost:3000")
+@Slf4j
 public class SimvecController {
 
 	private final VectorDatabaseService vectorDatabaseService;
@@ -63,5 +67,12 @@ public class SimvecController {
 		System.out.println(ResponseEntity.ok(images));
 		return ResponseEntity.ok(images);
 	}
+
+	@GetMapping("/verify")
+	public String verifyUser(@RequestParam("code") String token) {
+		log.info(String.format("User verification request taken. Verification Token: %s", token));
+		return authenticationService.verifyUserEmail(token);
+	}
+
 
 }
