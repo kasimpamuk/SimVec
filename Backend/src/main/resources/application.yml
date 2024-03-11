@@ -9,4 +9,13 @@ vector-database:
 
 search:
   image:
-    save-directory: "/home/leto/demo_mid"
+    save-directory: "/home/atakan/Desktop"
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 343780261228-eg4pch0btlv27b6p2d9ft4d06n3fdq57.apps.googleusercontent.com
+            client-secret: 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
