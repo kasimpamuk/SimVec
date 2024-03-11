@@ -3,7 +3,6 @@ package io.gitlab.group23.simvec.controller;
 import io.gitlab.group23.simvec.model.SimvecUser;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.TranslateText;
-import io.gitlab.group23.simvec.service.UserService;
 import io.gitlab.group23.simvec.service.VectorDatabaseService;
 import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
 import lombok.extern.slf4j.Slf4j;
