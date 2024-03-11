@@ -1,5 +1,6 @@
 package io.gitlab.group23.simvec.model;
 
+import io.gitlab.group23.simvec.service.authentication.ValidPassword;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +20,7 @@ public class SimvecUser {
 	private String userName;
 	@Column(unique = true)
 	private String email;
+	@ValidPassword
 	private String password;
 
 }

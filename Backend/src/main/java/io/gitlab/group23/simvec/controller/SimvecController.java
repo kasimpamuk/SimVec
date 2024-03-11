@@ -5,13 +5,13 @@ import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.TranslateText;
 import io.gitlab.group23.simvec.service.UserService;
 import io.gitlab.group23.simvec.service.VectorDatabaseService;
-import io.gitlab.group23.simvec.util.ImageUtil;
+import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -26,25 +26,20 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(origins = "http://localhost:3000")
 public class SimvecController {
 
-	private final UserService userService;
 	private final VectorDatabaseService vectorDatabaseService;
 	private final TranslateText translateText;
+	private final AuthenticationService authenticationService;
 
 	@Autowired
-	public SimvecController(UserService userService, VectorDatabaseService vectorDatabaseService, TranslateText translateText) {
-		this.userService = userService;
+	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService) {
 		this.vectorDatabaseService = vectorDatabaseService;
         this.translateText = translateText;
-    }
-
-	@GetMapping("/test")
-	public String test() {
-		return "Hello World!";
+		this.authenticationService = authenticationService;
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<SimvecUser> registerUser(@RequestBody SimvecUser simvecUser) {
-		return ResponseEntity.ok(userService.saveUser(simvecUser));
+	public ResponseEntity<SimvecUser> registerUser(@Validated @RequestBody SimvecUser simvecUser) {
+		return ResponseEntity.ok(authenticationService.registerUser(simvecUser));
 	}
 
 	@PostMapping("/image-based-search/{topk}")
@@ -67,13 +62,6 @@ public class SimvecController {
 		// System.out.println(Arrays.toString(images.get(0)));
 		System.out.println(ResponseEntity.ok(images));
 		return ResponseEntity.ok(images);
-	}
-
-	@GetMapping("/cloud-synchronization")
-	public String cloudSynchronization() {
-		// This can be implemented as a cron job
-		// TODO: Cloud synchronization logic
-		return "Hit cloud synchronization endpoint";
 	}
 
 }
