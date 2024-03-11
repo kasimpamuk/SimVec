@@ -35,11 +35,7 @@ search_params = {
     "params": {"nprobe": 10}
 }
 
-
-
 ##############
-
-
 
 # Towhee parameters
 MODEL = 'resnet50'
@@ -76,13 +72,6 @@ p_embed = (
     .map('img_path', 'img', ops.image_decode())
     .map('img', 'vec', ops.image_embedding.timm(model_name=MODEL, device=DEVICE))
 )
-
-def read_csv(csv_path, encoding='utf-8-sig'):
-    import csv
-    with open(csv_path, 'r', encoding=encoding) as f:
-        data = csv.DictReader(f)
-        for line in data:
-            yield int(line['id']), line['path']
 
 
 def search_image_or_text(data, data_type, collection):
@@ -200,13 +189,10 @@ def image_based_search(request):
 
     # Connect to Milvus service
     collection_name = 'user_' + (str) (user_id) + '_gallery'
-    search_type = 'image'
     collection = initialize_milvus(collection_name)
     collection.load()
-    # drop collection
-    
-    try:
-        
+
+    try:    
         query_image = Image.open(query_image_path).convert('RGB')  
         query_inputs = processor(images=query_image, return_tensors="pt")
         query_image_features = model.get_image_features(**query_inputs)
@@ -238,18 +224,18 @@ def image_based_search(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def text_based_search(request):
-    # Placeholder
-    #return JsonResponse({'message': 'Hit text_based_search'})
+    # request decoding
+    data = json.loads(request.body)
+    topk = data.get('topk')
+    query_text = data.get('input')
+    user_id = data.get('user_id')
 
-    collection_name = 'image_based_search_transformers'
-    search_type = 'image'
+    # Connect to Milvus service
+    collection_name = 'user_' + (str) (user_id) + '_gallery'
     collection = initialize_milvus(collection_name)
     collection.load()
 
     try:
-        data = json.loads(request.body)
-        topk = data.get('topk')
-        query_text = data.get('input')
         text_inputs = processor(text=query_text, return_tensors="pt", padding=True, truncation=True, max_length=77)
         query_text_features = model.get_text_features(**text_inputs)
         text_embedding = query_text_features.squeeze(0).detach().numpy().tolist()
