@@ -27,7 +27,6 @@ df = pd.read_csv(dataset_path)
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
 
-
 search_params = {
     "metric_type": "L2", 
     "offset": 0, 
@@ -72,37 +71,6 @@ p_embed = (
     .map('img_path', 'img', ops.image_decode())
     .map('img', 'vec', ops.image_embedding.timm(model_name=MODEL, device=DEVICE))
 )
-
-
-def search_image_or_text(data, data_type, collection):
-    if data_type == 'image':
-        # Search for example query image(s)
-        collection.load()
-        # Search pipeline
-        p_search_pre = (
-                p_embed.map('vec', ('search_res'), ops.ann_search.milvus_client(
-                            host=HOST, port=PORT, limit=TOPK,
-                            collection_name='image_based_search_transformers'))
-                    .map('search_res', 'pred', lambda x: [str(Path(y[0]).resolve()) for y in x])
-        #                .output('img_path', 'pred')
-        )
-        p_search = p_search_pre.output('img_path', 'pred')
-        dc = p_search(data)
-        return dc
-        
-    elif data_type == 'text':  
-        collection.load()
-        multiModalSearchPipe = (
-            pipe.input('text')
-            .map('text', 'vec', ops.image_text_embedding.clip(model_name='clip_vit_base_patch16', modality='text'))
-            .map('vec', 'vec', lambda x: x / np.linalg.norm(x))
-            .map('vec', 'result', ops.ann_search.milvus_client(host='127.0.0.1', port='19530', collection_name='text_based_search' , limit=TOPK))
-            .map('result', 'image_paths', lambda x: [item[0] for item in x])
-            #.map('image_ids', 'images', read_image)
-            .output('text', 'image_paths')
-        )
-        dc = multiModalSearchPipe(data)
-        return dc
 
 # Create milvus collection (delete first if exists)
 def create_milvus_collection(collection_name):
@@ -156,27 +124,16 @@ def initialize_milvus(collection_name):
     # Check if the collection already exists
     if(utility.has_collection(collection_name)):
         collection = Collection(collection_name)
-
         print(f"Using existing collection: {collection_name}")
-        if(not collection.is_empty):
-            pass
-        else:
-            pass
-            """
-            print(f"Collection {collection_name} exists but is empty")
-            collection = create_milvus_collection(collection_name)
-            entities = create_milvus_entities()
-            mr = collection.insert(entities)
-            print("mr: ", mr)
-            """
+    
     else:
         print(f"Creating new collection: {collection_name}")
         collection = create_milvus_collection(collection_name)
         entities = create_milvus_entities()
         mr = collection.insert(entities)
         print("mr: ", mr)
-    return collection
 
+    return collection
 
 @csrf_exempt
 @require_http_methods(["POST"])
