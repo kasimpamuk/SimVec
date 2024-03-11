@@ -22,7 +22,7 @@ public class SecurityConfig {
 		http
 				.csrf(AbstractHttpConfigurer::disable) // Disabling CSRF protection using the new method-based configuration
 				.authorizeHttpRequests(authz -> authz
-						.requestMatchers("/api/register").permitAll()  // Permit all requests to '/api/register'
+						.requestMatchers("/api/**").permitAll()  // Permit all requests to '/api/*'
 						.anyRequest().authenticated()  // Require authentication for any other request
 				)
 				.httpBasic(httpBasic -> {});  // Enable HTTP Basic Authentication using the new method-based configuration
