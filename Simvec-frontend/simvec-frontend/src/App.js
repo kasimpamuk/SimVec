@@ -124,6 +124,9 @@ function ImageUpload() {
           />
           <br />
           <button type="submit" className="submit-btn">Submit Text</button>
+          <button className="google-signin-btn" onClick={() => window.location.href = 'http://localhost:8080/login'}>
+            Sign In with Google
+          </button>
         </form>
       </div>
   
