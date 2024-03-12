@@ -1,66 +1,117 @@
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView, FlatList, Image, StyleSheet, Dimensions, PermissionsAndroid, Platform } from 'react-native';
-import CameraRoll from '@react-native-camera-roll/camera-roll';
+/**
+ * Sample React Native App
+ * https://github.com/facebook/react-native
+ *
+ * @format
+ */
 
-const { width } = Dimensions.get('window');
-const numColumns = 3;
-const imageSize = width / numColumns;
+import React from 'react';
+import type {PropsWithChildren} from 'react';
+import {
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 
-const App = () => {
-  const [photos, setPhotos] = useState([]);
+import {
+  Colors,
+  DebugInstructions,
+  Header,
+  LearnMoreLinks,
+  ReloadInstructions,
+} from 'react-native/Libraries/NewAppScreen';
 
-  useEffect(() => {
-    const getPhotos = async () => {
-      if (Platform.OS === 'android') {
-        const permission = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+type SectionProps = PropsWithChildren<{
+  title: string;
+}>;
+
+function Section({children, title}: SectionProps): React.JSX.Element {
+  const isDarkMode = useColorScheme() === 'dark';
+  return (
+    <View style={styles.sectionContainer}>
+      <Text
+        style={[
+          styles.sectionTitle,
           {
-            title: 'Access Library',
-            message: 'App needs access to your photos',
-            buttonPositive: 'OK', // Add the missing property
-          }
-        );
+            color: isDarkMode ? Colors.white : Colors.black,
+          },
+        ]}>
+        {title}
+      </Text>
+      <Text
+        style={[
+          styles.sectionDescription,
+          {
+            color: isDarkMode ? Colors.light : Colors.dark,
+          },
+        ]}>
+        {children}
+      </Text>
+    </View>
+  );
+}
 
-        if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Access to pictures was denied');
-          return;
-        }
-      }
+function App(): React.JSX.Element {
+  const isDarkMode = useColorScheme() === 'dark';
 
-      const { edges } = await CameraRoll.getPhotos({
-        first: 100, // Adjust this value as needed
-        assetType: 'Photos',
-      });
-
-      const imageURIs = edges.map(edge => edge.node.image.uri);
-      setPhotos(imageURIs);
-    };
-
-    getPhotos();
-  }, []);
+  const backgroundStyle = {
+    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={photos}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <Image source={{ uri: item }} style={styles.image} />
-        )}
-        numColumns={numColumns}
+    <SafeAreaView style={backgroundStyle}>
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={backgroundStyle.backgroundColor}
       />
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        style={backgroundStyle}>
+        <Header />
+        <View
+          style={{
+            backgroundColor: isDarkMode ? Colors.black : Colors.white,
+          }}>
+          <Section title="Step One">
+            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
+            screen and then come back to see your edits.
+          </Section>
+          <Section title="See Your Changes">
+            <ReloadInstructions />
+          </Section>
+          <Section title="Debug">
+            <DebugInstructions />
+          </Section>
+          <Section title="Learn More">
+            Read the docs to discover what to do next:
+          </Section>
+          <LearnMoreLinks />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  sectionContainer: {
+    marginTop: 32,
+    paddingHorizontal: 24,
   },
-  image: {
-    width: imageSize,
-    height: imageSize,
-    margin: 1,
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+  },
+  sectionDescription: {
+    marginTop: 8,
+    fontSize: 18,
+    fontWeight: '400',
+  },
+  highlight: {
+    fontWeight: '700',
   },
 });
 
