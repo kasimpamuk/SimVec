@@ -11,7 +11,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from towhee import pipe, ops, DataCollection
 from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Collection, utility
-#from django.core.files.storage import FileSystemStorage
 
 ##############
 from PIL import Image
@@ -20,7 +19,7 @@ import torch
 from transformers import CLIPProcessor, CLIPModel
 
 # Load the dataset
-dataset_path = 'reverse_image_search.csv'  # Replace with your dataset path
+dataset_path = 'reverse_image_search.csv'  
 df = pd.read_csv(dataset_path)
 
 # Load the CLIP model and processor
@@ -36,7 +35,7 @@ search_params = {
 
 ##############
 
-# Towhee parameters
+
 MODEL = 'resnet50'
 DEVICE = None # if None, use default device (cuda is enabled if available)
 
@@ -137,15 +136,30 @@ def initialize_milvus(collection_name):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+def create_collection_for_new_user(request):
+    # request decoding
+    data = json.loads(request.body)
+    user_id = data.get('user_id')
+
+    # Connect to Milvus service
+    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    collection = initialize_milvus(collection_name)
+    collection.load()
+
+    return JsonResponse({'message': 'Collection created successfully', 'collection_name': collection_name})
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def image_based_search(request):
     # request decoding
     data = json.loads(request.body)
     topk = data.get('topk')
     query_image_path = data.get('input')
-    user_id = data.get('user_id')
+    #user_id = data.get('user_id')
 
     # Connect to Milvus service
-    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    #collection_name = 'user_' + (str) (user_id) + '_gallery'
+    collection_name = 'user_2_gallery'
     collection = initialize_milvus(collection_name)
     collection.load()
 
@@ -189,7 +203,8 @@ def text_based_search(request):
 
     # Connect to Milvus service
     collection_name = 'user_' + (str) (user_id) + '_gallery'
-    collection = initialize_milvus(collection_name)
+    #collection_name = 'user_2_gallery'
+    collection = initialize_milvus(collection_name) 
     collection.load()
 
     try:
