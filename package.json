@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "jest-expo": "^50.0.3"
+  },
+  "dependencies": {
+    "@react-native-camera-roll/camera-roll": "^7.5.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-native-photo-library": "^1.0.5"
+  }
+}
