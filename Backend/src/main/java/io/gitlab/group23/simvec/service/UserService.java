@@ -32,6 +32,10 @@ public class UserService {
 		return userRepository.save(simvecUser);
 	}
 
+	public SimvecUser getUserByVerificationToken(String verificationToken) {
+		return userRepository.findSimvecUserByEmailVerificationToken(verificationToken);
+	}
+
 	public void deleteUser(Integer id) {
 		if (userRepository.existsById(id)) {
 			userRepository.deleteById(id);
