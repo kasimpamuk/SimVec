@@ -36,6 +36,10 @@ public class UserService {
 		return userRepository.findSimvecUserByEmailVerificationToken(verificationToken);
 	}
 
+	public SimvecUser getUserByUserName(String userName) {
+		return userRepository.findSimvecUserByUserName(userName);
+	}
+
 	public void deleteUser(Integer id) {
 		if (userRepository.existsById(id)) {
 			userRepository.deleteById(id);

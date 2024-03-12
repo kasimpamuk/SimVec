@@ -168,7 +168,7 @@ def image_based_search(request):
         
         for i in range(len(result_list)):
             result_list[i] = result_list[i][1:]
-            result_list[i] = "/home/atakan/Desktop/simvec/tarnsformers_VectorDatabase/api_for_database" + result_list[i]
+            result_list[i] = "/home/leto/simvec/VectorDatabase/api_for_database" + result_list[i]
         print(result_list)
         
         return JsonResponse({'message': 'Image processed successfully', 'results': list(result_list)})
@@ -210,7 +210,7 @@ def text_based_search(request):
         
         for i in range(len(result_list)):
             result_list[i] = result_list[i][1:]
-            result_list[i] = "/home/atakan/Desktop/simvec/tarnsformers_VectorDatabase/api_for_database" + result_list[i]
+            result_list[i] = "/home/leto/simvec/VectorDatabase/api_for_database" + result_list[i]
         print(result_list)
         return JsonResponse({'message': 'Image processed successfully', 'results': list(result_list)})
 

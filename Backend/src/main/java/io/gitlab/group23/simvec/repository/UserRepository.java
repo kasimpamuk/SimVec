@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<SimvecUser, Integer> {
 	public SimvecUser findSimvecUserByEmailVerificationToken(String emailVerificationToken);
 
+	public SimvecUser findSimvecUserByUserName(String userName);
+
 }
