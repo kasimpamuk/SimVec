@@ -1,5 +1,6 @@
 package io.gitlab.group23.simvec.service;
 
+import io.gitlab.group23.simvec.model.SimvecUser;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.restservice.RestService;
 import io.gitlab.group23.simvec.service.restservice.VectorDatabaseRestService;
@@ -30,10 +31,13 @@ public class VectorDatabaseService {
 
 	private final RestService<VectorDatabaseRequest, List<String>> vectorDatabaseRequestService = new VectorDatabaseRestService();
 
-	public List<byte[]> executeImageBasedSearch(MultipartFile image, String topk) throws IOException, InterruptedException {
+	private UserService userService;
+
+	public List<byte[]> executeImageBasedSearch(MultipartFile image, String topk , String userName) throws IOException, InterruptedException {
 		ImageUtil.saveImage("searched-image.jpeg", SEARCH_IMAGE_SAVE_DIRECTORY, image.getBytes());
+		SimvecUser currentUser = userService.getUserByUserName(userName);
 		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, IMAGE_BASED_SEARCH_ENDPOINT),
-				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY + "/searched-image.jpeg", topk));
+				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY + "/searched-image.jpeg", topk, userName));
 		return this.getAllImages(similarImagePaths);
 	}
 

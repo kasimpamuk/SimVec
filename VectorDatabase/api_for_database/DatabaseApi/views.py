@@ -155,11 +155,11 @@ def image_based_search(request):
     data = json.loads(request.body)
     topk = data.get('topk')
     query_image_path = data.get('input')
-    #user_id = data.get('user_id')
+    user_id = data.get('user_id')
 
     # Connect to Milvus service
-    #collection_name = 'user_' + (str) (user_id) + '_gallery'
-    collection_name = 'user_2_gallery'
+    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    #collection_name = 'user_2_gallery'
     collection = initialize_milvus(collection_name)
     collection.load()
 
