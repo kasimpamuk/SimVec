@@ -1,4 +1,4 @@
-package io.gitlab.group23.simvec.service.authentication;
+package io.gitlab.group23.simvec.service.authentication.passwordvalidation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

@@ -12,4 +12,6 @@ public class Constants {
 			+ "<h3><a href='%s/verify?code=%s'>VERIFY</a></h3>"
 			+ "<p>Thank you<br>The Your Company Team</p>";
 
+	public final static String SEARCHED_IMAGE_FILE_NAME = "searched-image.jpeg";
+
 }

@@ -1,6 +1,6 @@
 package io.gitlab.group23.simvec.model;
 
-import io.gitlab.group23.simvec.service.authentication.ValidPassword;
+import io.gitlab.group23.simvec.service.authentication.passwordvalidation.ValidPassword;
 import jakarta.persistence.*;
 import lombok.*;
 

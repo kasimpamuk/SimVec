@@ -21,8 +21,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-// TODO: Move authentication related endpoints to another controller
-
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -61,15 +59,11 @@ public class SimvecController {
 		String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
 		vectorDatabaseRequest.setInput(translatedText);
 		List<byte[]> images = vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest);
-		System.out.println(Base64.getEncoder().encodeToString(images.get(0)));
-		// System.out.println(Arrays.toString(images.get(0)));
-		System.out.println(ResponseEntity.ok(images));
 		return ResponseEntity.ok(images);
 	}
 
 	@GetMapping("/verify")
 	public String verifyUser(@RequestParam("code") String token) {
-		log.info(String.format("User verification request taken. Verification Token: %s", token));
 		return authenticationService.verifyUserEmail(token);
 	}
 

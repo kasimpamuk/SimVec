@@ -2,8 +2,8 @@ package io.gitlab.group23.simvec.service;
 
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.restservice.RestService;
-import io.gitlab.group23.simvec.service.restservice.VectorDatabaseRestService;
 import io.gitlab.group23.simvec.util.ImageUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.gitlab.group23.simvec.util.Constants.SEARCHED_IMAGE_FILE_NAME;
 
 @Service
 public class VectorDatabaseService {
@@ -28,17 +30,27 @@ public class VectorDatabaseService {
 	@Value("${search.image.save-directory}")
 	private String SEARCH_IMAGE_SAVE_DIRECTORY;
 
-	private final RestService<VectorDatabaseRequest, List<String>> vectorDatabaseRequestService = new VectorDatabaseRestService();
+	private final RestService<VectorDatabaseRequest, List<String>> vectorDatabaseRequestService;
+
+	@Autowired
+	public VectorDatabaseService(RestService<VectorDatabaseRequest, List<String>> vectorDatabaseRequestService) {
+		this.vectorDatabaseRequestService = vectorDatabaseRequestService;
+	}
 
 	public List<byte[]> executeImageBasedSearch(MultipartFile image, String topk) throws IOException, InterruptedException {
-		ImageUtil.saveImage("searched-image.jpeg", SEARCH_IMAGE_SAVE_DIRECTORY, image.getBytes());
-		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, IMAGE_BASED_SEARCH_ENDPOINT),
-				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY + "/searched-image.jpeg", topk));
+		ImageUtil.saveImage(SEARCHED_IMAGE_FILE_NAME, SEARCH_IMAGE_SAVE_DIRECTORY, image.getBytes());
+		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(
+				this.getURI(BASE_URL, IMAGE_BASED_SEARCH_ENDPOINT),
+				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY + "/" + SEARCHED_IMAGE_FILE_NAME, topk)
+		);
 		return this.getAllImages(similarImagePaths);
 	}
 
 	public List<byte[]> executeTextBasedSearch(VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
-		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(this.getURI(BASE_URL, TEXT_BASED_SEARCH_ENDPOINT), vectorDatabaseRequest);
+		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(
+				this.getURI(BASE_URL, TEXT_BASED_SEARCH_ENDPOINT),
+				vectorDatabaseRequest
+		);
 		return this.getAllImages(similarImagePaths);
 	}
 
@@ -48,8 +60,8 @@ public class VectorDatabaseService {
 
 	private List<byte[]> getAllImages(List<String> imagePaths) {
 		List<byte[]> images = new ArrayList<>();
-		for (int i = 0; i < imagePaths.size(); i++) {
-			images.add(getImage(imagePaths.get(i)));
+		for (String imagePath : imagePaths) {
+			images.add(getImage(imagePath));
 		}
 		return images;
 	}

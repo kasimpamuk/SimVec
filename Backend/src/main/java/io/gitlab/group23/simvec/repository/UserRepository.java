@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends JpaRepository<SimvecUser, Integer> {
-	public SimvecUser findSimvecUserByEmailVerificationToken(String emailVerificationToken);
+	SimvecUser findSimvecUserByEmailVerificationToken(String emailVerificationToken);
+
+	boolean existsByEmailOrUserName(String email, String userName);
 
 }

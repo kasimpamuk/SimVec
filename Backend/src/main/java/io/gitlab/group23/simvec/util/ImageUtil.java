@@ -17,7 +17,7 @@ public class ImageUtil {
 		try (FileOutputStream fileOutputStream = new FileOutputStream(filePath)) {
 			fileOutputStream.write(data);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Image could not be saved");
 		}
 	}
 
@@ -25,8 +25,7 @@ public class ImageUtil {
 		try {
 			return Files.readAllBytes(Path.of(imagePath));
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			throw new RuntimeException("Image could not be read");
 		}
 	}
 
