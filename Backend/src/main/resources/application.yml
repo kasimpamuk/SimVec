@@ -13,7 +13,7 @@ search:
 
 gallery:
   images:
-    save-directory: "/home/leto/gallery_images"
+    save-directory: "C:/Users/lenovo/Desktop/temp-server"
 
 spring:
   mail:

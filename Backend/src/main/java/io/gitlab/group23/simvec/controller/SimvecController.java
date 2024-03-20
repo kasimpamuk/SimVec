@@ -73,9 +73,9 @@ public class SimvecController {
 	}
 
 	@PostMapping("/transfer-images")
-	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images, String username) {
-		SimvecUser user = userService.getUserByUsername(username);
-		imagePopulationService.saveImages(images, user.getUserName());
+	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images, @RequestParam String username) {
+//		SimvecUser user = userService.getUserByUsername(username);
+		imagePopulationService.saveImages(images, "alper");
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Images are saved successfully");
 	}
 

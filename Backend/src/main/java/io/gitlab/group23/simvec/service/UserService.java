@@ -20,9 +20,6 @@ public class UserService {
 	}
 
 	public SimvecUser saveUser(SimvecUser simvecUser) {
-		if (userRepository.existsByEmailOrUserName(simvecUser.getEmail(), simvecUser.getUserName())) {
-			throw new RuntimeException("The user with the same email or username already exists");
-		}
 		return userRepository.save(simvecUser);
 	}
 

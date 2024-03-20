@@ -11,7 +11,7 @@ import java.io.IOException;
 public class ImagePopulationService {
 
 	@Value("${gallery.images.save-directory}")
-	private static String SAVE_DIRECTORY;
+	private String SAVE_DIRECTORY;
 
 	public void saveImages(MultipartFile[] images, String saveFolder) {
 		for (MultipartFile image : images) {
@@ -27,8 +27,8 @@ public class ImagePopulationService {
 		}
 	}
 
-	private static String getImageSavePath(String saveFolder) {
-		return SAVE_DIRECTORY + saveFolder + "/";
+	private String getImageSavePath(String saveFolder) {
+		return SAVE_DIRECTORY + "/" + saveFolder + "/";
 	}
 
 }
