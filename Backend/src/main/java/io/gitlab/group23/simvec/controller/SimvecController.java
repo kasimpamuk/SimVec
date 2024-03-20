@@ -2,7 +2,9 @@ package io.gitlab.group23.simvec.controller;
 
 import io.gitlab.group23.simvec.model.SimvecUser;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
+import io.gitlab.group23.simvec.service.ImagePopulationService;
 import io.gitlab.group23.simvec.service.TranslateText;
+import io.gitlab.group23.simvec.service.UserService;
 import io.gitlab.group23.simvec.service.VectorDatabaseService;
 import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +14,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Base64;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -30,12 +31,16 @@ public class SimvecController {
 	private final VectorDatabaseService vectorDatabaseService;
 	private final TranslateText translateText;
 	private final AuthenticationService authenticationService;
+	private final UserService userService;
+	private final ImagePopulationService imagePopulationService;
 
 	@Autowired
-	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService) {
+	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService, UserService userService, ImagePopulationService imagePopulationService) {
 		this.vectorDatabaseService = vectorDatabaseService;
         this.translateText = translateText;
 		this.authenticationService = authenticationService;
+		this.userService = userService;
+		this.imagePopulationService = imagePopulationService;
 	}
 
 	@PostMapping("/register")
@@ -65,6 +70,13 @@ public class SimvecController {
 	@GetMapping("/verify")
 	public String verifyUser(@RequestParam("code") String token) {
 		return authenticationService.verifyUserEmail(token);
+	}
+
+	@PostMapping("/transfer-images")
+	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images, String username) {
+		SimvecUser user = userService.getUserByUsername(username);
+		imagePopulationService.saveImages(images, user.getUserName());
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Images are saved successfully");
 	}
 
 

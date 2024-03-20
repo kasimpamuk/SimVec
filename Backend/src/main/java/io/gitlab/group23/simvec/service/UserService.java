@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,14 +19,6 @@ public class UserService {
 		this.userRepository = userRepository;
 	}
 
-	public List<SimvecUser> getAllUsers() {
-		return userRepository.findAll();
-	}
-
-	public Optional<SimvecUser> getUserById(Integer id) {
-		return userRepository.findById(id);
-	}
-
 	public SimvecUser saveUser(SimvecUser simvecUser) {
 		if (userRepository.existsByEmailOrUserName(simvecUser.getEmail(), simvecUser.getUserName())) {
 			throw new RuntimeException("The user with the same email or username already exists");
@@ -39,12 +30,12 @@ public class UserService {
 		return userRepository.findSimvecUserByEmailVerificationToken(verificationToken);
 	}
 
-	public void deleteUser(Integer id) {
-		if (userRepository.existsById(id)) {
-			userRepository.deleteById(id);
-			return;
+	public SimvecUser getUserByUsername(String username) {
+		Optional<SimvecUser> optionalSimvecUser = userRepository.getSimvecUserByUserName(username);
+		if (optionalSimvecUser.isEmpty()) {
+			throw new RuntimeException("No user with the given username exists");
 		}
-		log.warn("UserService::deleteUser(): No user found with the given id");
+		return optionalSimvecUser.get();
 	}
 
 }

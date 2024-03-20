@@ -11,6 +11,10 @@ search:
   image:
     save-directory: "/home/leto/demo_mid"
 
+gallery:
+  images:
+    save-directory: "/home/leto/gallery_images"
+
 spring:
   mail:
     host: smtp.office365.com
