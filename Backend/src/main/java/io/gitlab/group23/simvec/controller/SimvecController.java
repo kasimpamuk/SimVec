@@ -2,10 +2,7 @@ package io.gitlab.group23.simvec.controller;
 
 import io.gitlab.group23.simvec.model.SimvecUser;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
-import io.gitlab.group23.simvec.service.ImagePopulationService;
-import io.gitlab.group23.simvec.service.TranslateText;
-import io.gitlab.group23.simvec.service.UserService;
-import io.gitlab.group23.simvec.service.VectorDatabaseService;
+import io.gitlab.group23.simvec.service.*;
 import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,14 +30,16 @@ public class SimvecController {
 	private final AuthenticationService authenticationService;
 	private final UserService userService;
 	private final ImagePopulationService imagePopulationService;
+	private final IdDifferenceService idDifferenceService;
 
 	@Autowired
-	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService, UserService userService, ImagePopulationService imagePopulationService) {
+	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService, UserService userService, ImagePopulationService imagePopulationService, IdDifferenceService idDifferenceService) {
 		this.vectorDatabaseService = vectorDatabaseService;
         this.translateText = translateText;
 		this.authenticationService = authenticationService;
 		this.userService = userService;
 		this.imagePopulationService = imagePopulationService;
+		this.idDifferenceService = idDifferenceService;
 	}
 
 	@PostMapping("/register")
@@ -74,9 +73,15 @@ public class SimvecController {
 
 	@PostMapping("/transfer-images")
 	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images, @RequestParam String username) {
-//		SimvecUser user = userService.getUserByUsername(username);
-		imagePopulationService.saveImages(images, "alper");
+		// TODO: Get user by its JWT token, and use its id or username
+		imagePopulationService.saveImages(images, username);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Images are saved successfully");
+	}
+
+	@PostMapping("/get-missing-image-ids")
+	public ResponseEntity<List<Integer>> getMissingImageIds(@RequestBody List<Integer> clientImageIds) {
+		List<Integer> serverImageIds = List.of(1, 3, 5, 7, 9);
+		return ResponseEntity.ok(idDifferenceService.getIdDifference(clientImageIds, serverImageIds));
 	}
 
 
