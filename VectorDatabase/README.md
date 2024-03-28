@@ -1,3 +1,3 @@
-sudo docker-compose up -d
+to run docker containers:
 
-to run docker containers
+sudo docker-compose up -d

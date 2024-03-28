@@ -48,13 +48,14 @@ function ImageUpload() {
     }
     const formData = new FormData();
     formData.append('file', image);
-  
+    console.log(image);
     try {
       const response = await fetch(`http://localhost:8080/api/image-based-search/${searchNumber}`, {
         method: 'POST',
         body: formData,
       });
       const base64Images = await response.json();
+      console.log(base64Images);
       const urls = base64Images.map(base64 => `data:image/jpeg;base64,${base64}`);
       setImageList(urls);
     } catch (error) {
