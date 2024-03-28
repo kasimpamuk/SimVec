@@ -1,8 +1,8 @@
-# Django view for handling image or text conversion with external services
 import json
 import requests
 import numpy as np
 import csv
+import os
 from glob import glob
 from pathlib import Path
 from statistics import mean
@@ -18,10 +18,6 @@ import pandas as pd
 import torch
 from transformers import CLIPProcessor, CLIPModel
 
-# Load the dataset
-dataset_path = 'reverse_image_search.csv'  
-df = pd.read_csv(dataset_path)
-
 # Load the CLIP model and processor
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
@@ -35,7 +31,6 @@ search_params = {
 
 ##############
 
-
 MODEL = 'resnet50'
 DEVICE = None # if None, use default device (cuda is enabled if available)
 
@@ -48,9 +43,32 @@ DIM = 512
 INDEX_TYPE = 'IVF_FLAT'
 METRIC_TYPE = 'L2'
 
-# path to csv (column_1 indicates image path) OR a pattern of image paths
-INSERT_SRC = 'reverse_image_search.csv'
-QUERY_SRC = './test/*/*.JPEG'
+def csv_maker(dataset_path, user_id):
+    output_csv = "image_paths_" + user_id + ".csv"
+    image_data = []
+    id_counter = 0
+
+    for root, dirs, files in os.walk(dataset_path):
+        for file in files:
+            if file.endswith(('.PNG', '.JPG', '.JPEG', '.png', '.jpg', '.jpeg')):
+                image_path = os.path.join(root, file)
+                image_data.append([id_counter, image_path])
+                id_counter += 1
+                
+                # Debug print to check the file paths being added
+                print(f"Adding: {id_counter}, {image_path}")
+
+    with open(output_csv, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['id', 'path'])
+        for data in image_data:
+            writer.writerow(data)
+
+    if image_data:
+        print(f"Paths and IDs of all images have been written to {output_csv}")
+    else:
+        print(f"No images found. Please check the dataset path and file extensions.")
+    return output_csv
 
 # Load image path
 def load_image(x):
@@ -92,9 +110,9 @@ def create_milvus_collection(collection_name):
     collection.create_index(field_name='embedding', index_params=index_params)
     return collection
 
-def create_milvus_entities():
+def create_milvus_entities(user_dataset):
     embeddings = []
-
+    df = pd.read_csv(user_dataset)
     for index, row in df.iterrows():
         image_path = row['path']  # Assuming the path is in a column named 'path'
         image = Image.open(image_path).convert('RGB')  # Ensure image is in RGB
@@ -109,7 +127,7 @@ def create_milvus_entities():
     return entities
 
 
-def initialize_milvus(collection_name):
+def initialize_milvus(collection_name, image_folder_path):
     # Connect to Milvus service
     connections.connect(host=HOST, port=PORT)
 
@@ -128,7 +146,7 @@ def initialize_milvus(collection_name):
     else:
         print(f"Creating new collection: {collection_name}")
         collection = create_milvus_collection(collection_name)
-        entities = create_milvus_entities()
+        entities = create_milvus_entities(image_folder_path)
         mr = collection.insert(entities)
         print("mr: ", mr)
 
@@ -140,10 +158,13 @@ def create_collection_for_new_user(request):
     # request decoding
     data = json.loads(request.body)
     user_id = data.get('user_id')
-
-    # Connect to Milvus service
+    # get the path of the image folder of the user
+    image_folder_path = data.get('image_folder_path')
+    print(image_folder_path)
+    # Create a collection for the new user
     collection_name = 'user_' + (str) (user_id) + '_gallery'
-    collection = initialize_milvus(collection_name)
+    user_dataset = csv_maker(image_folder_path, user_id)
+    collection = initialize_milvus(collection_name, user_dataset)
     collection.load()
 
     return JsonResponse({'message': 'Collection created successfully', 'collection_name': collection_name})
@@ -155,11 +176,11 @@ def image_based_search(request):
     data = json.loads(request.body)
     topk = data.get('topk')
     query_image_path = data.get('input')
-    #user_id = data.get('user_id')
+    user_id = data.get('user_id')
 
     # Connect to Milvus service
-    #collection_name = 'user_' + (str) (user_id) + '_gallery'
-    collection_name = 'user_2_gallery'
+    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    #collection_name = 'user_2_gallery'
     collection = initialize_milvus(collection_name)
     collection.load()
 
@@ -182,7 +203,7 @@ def image_based_search(request):
         
         for i in range(len(result_list)):
             result_list[i] = result_list[i][1:]
-            result_list[i] = "/home/atakan/Desktop/simvec/tarnsformers_VectorDatabase/api_for_database" + result_list[i]
+            result_list[i] = "/home/atakan/Desktop/simvec/VectorDatabase/api_for_database" + result_list[i]
         print(result_list)
         
         return JsonResponse({'message': 'Image processed successfully', 'results': list(result_list)})
@@ -225,7 +246,7 @@ def text_based_search(request):
         
         for i in range(len(result_list)):
             result_list[i] = result_list[i][1:]
-            result_list[i] = "/home/atakan/Desktop/simvec/tarnsformers_VectorDatabase/api_for_database" + result_list[i]
+            result_list[i] = "/home/atakan/Desktop/simvec/VectorDatabase/api_for_database" + result_list[i]
         print(result_list)
         return JsonResponse({'message': 'Image processed successfully', 'results': list(result_list)})
 
