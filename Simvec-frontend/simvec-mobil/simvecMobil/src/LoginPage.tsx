@@ -23,33 +23,7 @@ function RegisterPage() {
   const navigation = useNavigation();
 
   const handleSubmit = async () => {
-    const userData = {
-      userName: name,
-      email: email,
-      password: password,
-    };
-
-    try {
-      const response = await fetch('http://localhost:8080/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        setErrors(errorData);
-        console.error('Registration failed:', errorData);
-      } else {
-        console.log('Registration successful!');
-        setErrors('');
-        navigation.navigate('Main'); // Use the correct name of your main page route
-      }
-    } catch (error) {
-      console.error('Error during registration:', error);
-    }
+    navigation.navigate('Main'); // Use the correct name of your main page route
   };
 
   return (

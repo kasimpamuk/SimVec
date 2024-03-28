@@ -51,6 +51,12 @@ function MainPage() {
     }
   };
 
+  // Simulated synchronization function
+  const handleSynchronization = () => {
+    Alert.alert('Synchronization', 'Synchronization in progress...');
+    // Place your synchronization logic here
+  };
+
   const handleNumberChange = e => {
     setSearchNumber(e.target.value);
   };
@@ -59,6 +65,11 @@ function MainPage() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Image source={logo} style={styles.logo} resizeMode="contain" />
+        <Button
+          title="Synchronize"
+          onPress={handleSynchronization}
+          color="#32cd32"
+        />
       </View>
       <View style={styles.textAreaContainer}>
         <Text style={styles.label}>Enter text for search:</Text>
