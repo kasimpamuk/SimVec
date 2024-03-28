@@ -17,14 +17,39 @@ function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState('');
 
   // Get the navigation prop
   const navigation = useNavigation();
 
-  const handleSubmit = () => {
-    console.log('Registering with:', name, email, password);
-    // After registering, navigate to the MainPage
-    navigation.navigate('Main');
+  const handleSubmit = async () => {
+    const userData = {
+      userName: name,
+      email: email,
+      password: password,
+    };
+
+    try {
+      const response = await fetch('http://localhost:8080/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setErrors(errorData);
+        console.error('Registration failed:', errorData);
+      } else {
+        console.log('Registration successful!');
+        setErrors('');
+        navigation.navigate('Main'); // Use the correct name of your main page route
+      }
+    } catch (error) {
+      console.error('Error during registration:', error);
+    }
   };
 
   return (
@@ -63,7 +88,9 @@ function RegisterPage() {
               secureTextEntry={true}
               autoCapitalize="none"
             />
-
+            {errors.password && (
+              <Text style={styles.error}>{errors.password}</Text>
+            )}
             <Button
               onPress={handleSubmit}
               title="Register"

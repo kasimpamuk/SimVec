@@ -9,7 +9,7 @@ vector-database:
 
 search:
   image:
-    save-directory: "/home/leto/demo_mid"
+    save-directory: "/Users/eliflale/Desktop"
 
 spring:
   datasource:

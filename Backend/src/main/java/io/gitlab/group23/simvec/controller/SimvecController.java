@@ -36,6 +36,7 @@ public class SimvecController {
 		this.vectorDatabaseService = vectorDatabaseService;
         this.translateText = translateText;
 		this.authenticationService = authenticationService;
+		System.out.println("simveccontroller");
 	}
 
 	@PostMapping("/register")
