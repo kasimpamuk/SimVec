@@ -44,7 +44,14 @@ INDEX_TYPE = 'IVF_FLAT'
 METRIC_TYPE = 'L2'
 
 def csv_maker(dataset_path, user_id):
-    output_csv = "image_paths_" + user_id + ".csv"
+    # Directory where the CSV files will be saved
+    csv_directory = "user_datasets"
+    
+    if not os.path.exists(csv_directory):
+        os.makedirs(csv_directory)
+    
+    output_csv = os.path.join(csv_directory, "image_paths_" + str(user_id) + ".csv")
+    
     image_data = []
     id_counter = 0
 
@@ -56,7 +63,7 @@ def csv_maker(dataset_path, user_id):
                 id_counter += 1
                 
                 # Debug print to check the file paths being added
-                print(f"Adding: {id_counter}, {image_path}")
+                #print(f"Adding: {id_counter}, {image_path}")
 
     with open(output_csv, 'w', newline='') as file:
         writer = csv.writer(file)
@@ -69,7 +76,6 @@ def csv_maker(dataset_path, user_id):
     else:
         print(f"No images found. Please check the dataset path and file extensions.")
     return output_csv
-
 # Load image path
 def load_image(x):
     if x.endswith('csv'):
