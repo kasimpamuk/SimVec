@@ -243,43 +243,57 @@ def text_based_search(request):
 def image_embedding_and_storage(request):
     data = json.loads(request.body)
     user_id = data.get('user_id')
-    new_images = data.get('new_images')
+    updated_images = data.get('updated_images')
+    operation = data.get('operation')
     # I need to find the user's csv file and collection, and update them with the new images
     user_dataset = 'user_datasets/image_paths_' + (str) (user_id) + '.csv'
 
-    # get the id of the last image in the csv file
-    with open(user_dataset, 'r') as file:
-        reader = csv.reader(file)
-        data = list(reader)
-        last_id = data[-1][0]
 
-    # create a temp csv file to store the new images
-    last_id = (int) (last_id) + 1
-    temp_csv = 'temp_image_paths_' + (str) (user_id) + '.csv'
-    with open(temp_csv, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['id', 'path'])
-        for image in new_images:
-            writer.writerow([last_id, image])
-            last_id = (int) (last_id) + 1
-    
-    # add the temp csv to the user's csv file
-    with open(user_dataset, 'a') as f:
-        with open(temp_csv, 'r') as t:
-            next(t)
-            for line in t:
-                f.write(line)
-
-    # insert the new images to the collection
     collection_name = 'user_' + (str) (user_id) + '_gallery'
     collection = initialize_milvus(collection_name, user_dataset)
+    if operation == 'insert':
+        # get the id of the last image in the csv file
+        with open(user_dataset, 'r') as file:
+            reader = csv.reader(file)
+            data = list(reader)
+            last_id = data[-1][0]
 
-    entities = create_milvus_entities(temp_csv)
-    mr = collection.insert(entities)
-    collection.load()
+        # add the new images to the csv file
+        # create a temp csv file to store the new images
+        last_id = (int) (last_id) + 1
+        temp_csv = 'temp_image_paths_' + (str) (user_id) + '.csv'
+        with open(temp_csv, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['id', 'path'])
+            for image in updated_images:
+                writer.writerow([last_id, image])
+                last_id = (int) (last_id) + 1
+        
+        # add the temp csv to the user's csv file
+        with open(user_dataset, 'a') as f:
+            with open(temp_csv, 'r') as t:
+                next(t)
+                for line in t:
+                    f.write(line)
+        # insert the new images to the collection
+        entities = create_milvus_entities(temp_csv)
+        mr = collection.insert(entities)
+        collection.load()
 
-    #delete the temp csv file
-    os.remove(temp_csv)
-    print("mr: ", mr)
-    return JsonResponse({'message': 'Images added successfully', 'collection_name': collection_name})
-     
+        #delete the temp csv file
+        os.remove(temp_csv)
+        #print("mr: ", mr)
+        return JsonResponse({'message': 'Images added successfully', 'collection_name': collection_name})
+    
+    elif operation == 'delete':
+        expr = " || ".join([f"path == '{path}'" for path in updated_images])
+        mr = collection.delete(expr)
+        #print("mr: ", mr)
+        collection.load()
+        collection.flush()
+        # delete the images from the csv file
+        df = pd.read_csv(user_dataset)
+        df = df[~df['path'].isin(updated_images)]
+        df.to_csv(user_dataset, index=False)
+
+        return JsonResponse({'message': 'Images deleted successfully', 'collection_name': collection_name})
