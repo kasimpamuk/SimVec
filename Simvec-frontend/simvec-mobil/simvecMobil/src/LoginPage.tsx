@@ -5,6 +5,7 @@ import {
   Text,
   TextInput,
   Button,
+  TouchableOpacity,
   Image,
   StyleSheet,
   TouchableWithoutFeedback,
@@ -50,6 +51,11 @@ function LoginPage() {
     }
   };
 
+  // Function to navigate to RegisterPage
+  const navigateToRegister = () => {
+    navigation.navigate('Register'); // Use the correct name of your register page route
+  };
+
   return (
       <>
         <View style={styles.imageHeader}>
@@ -60,32 +66,18 @@ function LoginPage() {
             <View style={styles.header}></View>
             <View style={styles.loginContainer}>
               <Text style={styles.loginHeading}>Login</Text>
+              {/* Email and Password Inputs */}
+              <TextInput style={styles.input} onChangeText={setEmail} value={email} placeholder="Email" keyboardType="email-address" autoCapitalize="none" />
+              <TextInput style={styles.input} onChangeText={setPassword} value={password} placeholder="Password" secureTextEntry={true} autoCapitalize="none" />
 
-              <TextInput
-                  style={styles.input}
-                  onChangeText={setEmail}
-                  value={email}
-                  placeholder="Email"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-              />
+              <TouchableOpacity onPress={handleSubmit} style={styles.loginButton}>
+                <Text style={styles.loginButtonText}>Login</Text>
+              </TouchableOpacity>
 
-              <TextInput
-                  style={styles.input}
-                  onChangeText={setPassword}
-                  value={password}
-                  placeholder="Password"
-                  secureTextEntry={true}
-                  autoCapitalize="none"
-              />
-              {errors.password && (
-                  <Text style={styles.error}>{errors.password}</Text>
-              )}
-              <Button
-                  onPress={handleSubmit}
-                  title="Login"
-                  color="#841584" // Example color
-              />
+              {/* Register Navigation Button */}
+              <TouchableOpacity onPress={navigateToRegister} style={styles.registerButton}>
+                <Text style={styles.registerButtonText}>Don't have an account? Register</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -94,7 +86,7 @@ function LoginPage() {
 }
 
 const styles = StyleSheet.create({
-  // Styles are similar to RegisterPage, adjust if needed
+  // Existing styles remain the same
   header: {},
   container: {
     flex: 1,
@@ -134,6 +126,33 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     textAlign: 'center',
   },
+  loginButton: {
+    backgroundColor: '#841584', // Use your app's theme color
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 10,
+    alignSelf: 'center', // Center button in the container
+  },
+  loginButtonText: {
+    color: '#FFFFFF', // White color for the text
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  registerButton: {
+    marginTop: 20, // Provide some space from the login button
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#841584', // Border color matches the login button background
+    alignSelf: 'center', // Center button in the container
+  },
+  registerButtonText: {
+    color: '#841584', // Text color matches the login button background
+    fontSize: 16,
+    textAlign: 'center',
+  },
   input: {
     height: 50,
     marginBottom: 15,
@@ -144,7 +163,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     fontSize: 16,
   },
-  // Include styles for error messages if you have them in your design
+  // Rest of the styles remain unchanged
 });
 
 export default LoginPage;

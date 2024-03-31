@@ -19,7 +19,7 @@ function App() {
         <Stack.Screen
           name="Register"
           component={RegisterPage}
-          options={{headerShown: true}}
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Main"

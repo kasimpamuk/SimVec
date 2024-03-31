@@ -39,6 +39,7 @@ function RegisterPage() {
       });
 
       if (!response.ok) {
+        navigation.navigate('Main');
         const errorData = await response.json();
         setErrors(errorData);
         console.error('Registration failed:', errorData);
@@ -48,6 +49,7 @@ function RegisterPage() {
         navigation.navigate('Main'); // Use the correct name of your main page route
       }
     } catch (error) {
+      navigation.navigate('Main');
       console.error('Error during registration:', error);
     }
   };
