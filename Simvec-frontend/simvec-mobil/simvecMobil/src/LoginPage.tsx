@@ -13,8 +13,7 @@ import {
 // Assuming simvec.png is correctly placed in your assets folder
 import logo from './assets/simvec.png';
 
-function RegisterPage() {
-  const [name, setName] = useState('');
+function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState('');
@@ -23,110 +22,129 @@ function RegisterPage() {
   const navigation = useNavigation();
 
   const handleSubmit = async () => {
-    navigation.navigate('Main'); // Use the correct name of your main page route
+    const loginData = {
+      email: email,
+      password: password,
+    };
+
+    try {
+      const response = await fetch('http://localhost:8080/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setErrors(errorData);
+        console.error('Login failed:', errorData);
+      } else {
+        console.log('Login successful!');
+        setErrors('');
+        navigation.navigate('Main'); // Adjust with your main page route name
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+    }
   };
 
   return (
-    <>
-      <View style={styles.imageHeader}>
-        <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
-      </View>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.container}>
-          <View style={styles.header}></View>
-          <View style={styles.registerContainer}>
-            <Text style={styles.registerHeading}>Register</Text>
-
-            <TextInput
-              style={styles.input}
-              onChangeText={setName}
-              value={name}
-              placeholder="Name"
-              autoCapitalize="none"
-            />
-
-            <TextInput
-              style={styles.input}
-              onChangeText={setEmail}
-              value={email}
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-
-            <TextInput
-              style={styles.input}
-              onChangeText={setPassword}
-              value={password}
-              placeholder="Password"
-              secureTextEntry={true}
-              autoCapitalize="none"
-            />
-            {errors.password && (
-              <Text style={styles.error}>{errors.password}</Text>
-            )}
-            <Button
-              onPress={handleSubmit}
-              title="Register"
-              color="#841584" // Example color
-            />
-          </View>
+      <>
+        <View style={styles.imageHeader}>
+          <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
         </View>
-      </TouchableWithoutFeedback>
-    </>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.container}>
+            <View style={styles.header}></View>
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginHeading}>Login</Text>
+
+              <TextInput
+                  style={styles.input}
+                  onChangeText={setEmail}
+                  value={email}
+                  placeholder="Email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+              />
+
+              <TextInput
+                  style={styles.input}
+                  onChangeText={setPassword}
+                  value={password}
+                  placeholder="Password"
+                  secureTextEntry={true}
+                  autoCapitalize="none"
+              />
+              {errors.password && (
+                  <Text style={styles.error}>{errors.password}</Text>
+              )}
+              <Button
+                  onPress={handleSubmit}
+                  title="Login"
+                  color="#841584" // Example color
+              />
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </>
   );
 }
 
 const styles = StyleSheet.create({
+  // Styles are similar to RegisterPage, adjust if needed
   header: {},
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f4f4f4', // A light grey background
+    backgroundColor: '#f4f4f4',
   },
   imageHeader: {
-    width: '100%', // The header takes the full width of the screen
-    paddingBottom: 20, // Adds some space below the logo
-    backgroundColor: '#ffffff', // A white background for the header
-    borderBottomWidth: 1, // A line to separate the header from the content
-    borderColor: '#e0e0e0', // Light grey border color
+    width: '100%',
+    paddingBottom: 20,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
   },
   websiteLogo: {
-    width: '90%', // Less than 100% to give some padding on the sides
-    height: 120, // A bit larger height for a prominent logo
-    marginTop: 50, // Move the logo down a bit from the top of the screen
+    width: '90%',
+    height: 120,
+    marginTop: 50,
     alignSelf: 'center',
   },
-  registerContainer: {
-    width: '90%', // Make the container a bit narrower for tablet and large screen support
-    borderRadius: 10, // Rounded corners
-    backgroundColor: '#ffffff', // A white background for the form
-    padding: 20, // Inside padding
-    elevation: 3, // Shadow for Android
-    shadowColor: '#000000', // Shadow color for iOS
-    shadowOffset: {width: 0, height: 2}, // Shadow offset for iOS
-    shadowOpacity: 0.1, // Shadow opacity for iOS
-    shadowRadius: 4, // Shadow blur for iOS
-    marginTop: -60, // Pull the register container up to overlap the logo
+  loginContainer: {
+    width: '90%',
+    borderRadius: 10,
+    backgroundColor: '#ffffff',
+    padding: 20,
+    elevation: 3,
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    marginTop: -60,
   },
-  registerHeading: {
+  loginHeading: {
     fontSize: 28,
-    fontWeight: '700', // A bolder weight for the heading
-    color: '#333333', // A darker color for the text
-    marginBottom: 30, // More space below the heading
-    textAlign: 'center', // Center align the text
+    fontWeight: '700',
+    color: '#333333',
+    marginBottom: 30,
+    textAlign: 'center',
   },
   input: {
-    height: 50, // A taller input for easier touch
-    marginBottom: 15, // Increase space between inputs
+    height: 50,
+    marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#cccccc', // A lighter border color
-    borderRadius: 5, // Rounded corners for the input fields
+    borderColor: '#cccccc',
+    borderRadius: 5,
     padding: 10,
-    backgroundColor: '#ffffff', // A white background for the input
-    fontSize: 16, // Slightly larger font size
+    backgroundColor: '#ffffff',
+    fontSize: 16,
   },
+  // Include styles for error messages if you have them in your design
 });
 
-export default RegisterPage;
+export default LoginPage;
