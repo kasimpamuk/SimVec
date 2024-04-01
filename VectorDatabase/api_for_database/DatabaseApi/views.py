@@ -5,11 +5,9 @@ import csv
 import os
 from glob import glob
 from pathlib import Path
-from statistics import mean
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from towhee import pipe, ops, DataCollection
 from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Collection, utility
 
 ##############
@@ -29,11 +27,6 @@ search_params = {
     "params": {"nprobe": 10}
 }
 
-##############
-
-MODEL = 'resnet50'
-DEVICE = None # if None, use default device (cuda is enabled if available)
-
 # Milvus parameters
 HOST = '127.0.0.1'
 PORT = '19530'
@@ -44,7 +37,14 @@ INDEX_TYPE = 'IVF_FLAT'
 METRIC_TYPE = 'L2'
 
 def csv_maker(dataset_path, user_id):
-    output_csv = "image_paths_" + user_id + ".csv"
+    # Directory where the CSV files will be saved
+    csv_directory = "user_datasets"
+    
+    if not os.path.exists(csv_directory):
+        os.makedirs(csv_directory)
+    
+    output_csv = os.path.join(csv_directory, "image_paths_" + str(user_id) + ".csv")
+    
     image_data = []
     id_counter = 0
 
@@ -56,7 +56,7 @@ def csv_maker(dataset_path, user_id):
                 id_counter += 1
                 
                 # Debug print to check the file paths being added
-                print(f"Adding: {id_counter}, {image_path}")
+                #print(f"Adding: {id_counter}, {image_path}")
 
     with open(output_csv, 'w', newline='') as file:
         writer = csv.writer(file)
@@ -70,24 +70,6 @@ def csv_maker(dataset_path, user_id):
         print(f"No images found. Please check the dataset path and file extensions.")
     return output_csv
 
-# Load image path
-def load_image(x):
-    if x.endswith('csv'):
-        with open(x) as f:
-            reader = csv.reader(f)
-            next(reader)
-            for item in reader:
-                yield item[1]
-    else:
-        for item in glob(x):
-            yield item
-
-p_embed = (
-    pipe.input('src')
-    .flat_map('src', 'img_path', load_image)
-    .map('img_path', 'img', ops.image_decode())
-    .map('img', 'vec', ops.image_embedding.timm(model_name=MODEL, device=DEVICE))
-)
 
 # Create milvus collection (delete first if exists)
 def create_milvus_collection(collection_name):
@@ -164,6 +146,7 @@ def create_collection_for_new_user(request):
     # Create a collection for the new user
     collection_name = 'user_' + (str) (user_id) + '_gallery'
     user_dataset = csv_maker(image_folder_path, user_id)
+    print(user_dataset)
     collection = initialize_milvus(collection_name, user_dataset)
     collection.load()
 
@@ -258,36 +241,59 @@ def text_based_search(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def image_embedding_and_storage(request):
-    #return JsonResponse({'message': 'Hit image_embedding_and_storage'})
-    collection = initialize_milvus()
-    
-    try:
-        # Assuming the request body will contain the path to the image(s)
-        image_paths = request.body.decode('utf-8').split('\n')  
+    data = json.loads(request.body)
+    user_id = data.get('user_id')
+    updated_images = data.get('updated_images')
+    operation = data.get('operation')
+    # I need to find the user's csv file and collection, and update them with the new images
+    user_dataset = 'user_datasets/image_paths_' + (str) (user_id) + '.csv'
 
-        # Process each image and store the embeddings
-        stored_ids = []
-        for image_path in image_paths:
-            
-            # Use the Towhee pipeline to process and insert the image embedding into Milvus
-            # Insert data
-            p_insert = (
-                p_embed.map(('img_path', 'vec'), 'mr', ops.ann_insert.milvus_client(
-                            host=HOST,
-                            port=PORT,
-                            collection_name='image_based_search'
-                            ))
-                .output('mr')
-            )
-            p_insert_result = p_insert(image_path)
-            stored_ids.extend(p_insert_result)
 
-        # Commit the changes to the Milvus database
+    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    collection = initialize_milvus(collection_name, user_dataset)
+    if operation == 'insert':
+        # get the id of the last image in the csv file
+        with open(user_dataset, 'r') as file:
+            reader = csv.reader(file)
+            data = list(reader)
+            last_id = data[-1][0]
+
+        # add the new images to the csv file
+        # create a temp csv file to store the new images
+        last_id = (int) (last_id) + 1
+        temp_csv = 'temp_image_paths_' + (str) (user_id) + '.csv'
+        with open(temp_csv, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['id', 'path'])
+            for image in updated_images:
+                writer.writerow([last_id, image])
+                last_id = (int) (last_id) + 1
+        
+        # add the temp csv to the user's csv file
+        with open(user_dataset, 'a') as f:
+            with open(temp_csv, 'r') as t:
+                next(t)
+                for line in t:
+                    f.write(line)
+        # insert the new images to the collection
+        entities = create_milvus_entities(temp_csv)
+        mr = collection.insert(entities)
         collection.load()
 
-        # Return the list of Milvus primary keys as a response
-        return JsonResponse({'message': 'Images processed and stored successfully', 'stored_ids': stored_ids})
+        #delete the temp csv file
+        os.remove(temp_csv)
+        #print("mr: ", mr)
+        return JsonResponse({'message': 'Images added successfully', 'collection_name': collection_name})
+    
+    elif operation == 'delete':
+        expr = " || ".join([f"path == '{path}'" for path in updated_images])
+        mr = collection.delete(expr)
+        #print("mr: ", mr)
+        collection.load()
+        collection.flush()
+        # delete the images from the csv file
+        df = pd.read_csv(user_dataset)
+        df = df[~df['path'].isin(updated_images)]
+        df.to_csv(user_dataset, index=False)
 
-    except Exception as e:
-        # Handle any errors that occur during the process
-        return JsonResponse({'error': str(e)},status=500)
+        return JsonResponse({'message': 'Images deleted successfully', 'collection_name': collection_name})
