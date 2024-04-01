@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -19,6 +20,7 @@ function MainPage() {
   const [searchNumber, setSearchNumber] = useState(5);
   const [imageList, setImageList] = useState([]);
   const [image, setImage] = useState<{ uri: string; base64?: string } | null>(null);
+  const navigation = useNavigation();
 
   const data = {
     input: text,
@@ -108,11 +110,12 @@ function MainPage() {
       <ScrollView style={styles.container}>
         <View style={styles.header}>
           <Image source={logo} style={styles.logo} resizeMode="contain" />
-          <Button
-              title="Synchronize"
-              onPress={() => Alert.alert('Synchronization', 'Synchronization in progress...')}
-              color="#32cd32"
-          />
+        </View>
+        <View style={styles.header}>
+            <Button title="User Page"
+                onPress={() => navigation.navigate('User')}
+                color="#ff0000"
+            />
         </View>
         <View style={styles.textAreaContainer}>
           <Text style={styles.label}>Enter text for search:</Text>
@@ -145,6 +148,14 @@ function MainPage() {
               ))}
             </View>
         )}
+
+        <View style ={styles.header}>
+            <Button
+                title="Synchronize"
+                onPress={() => Alert.alert('Synchronization', 'Synchronization in progress...')}
+                color="#32cd32"
+            />
+        </View>
       </ScrollView>
   );
 }
@@ -220,6 +231,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 5,
   },
+
 });
 
 export default MainPage;
