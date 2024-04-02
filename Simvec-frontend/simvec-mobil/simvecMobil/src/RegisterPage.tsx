@@ -10,100 +10,104 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-// Assuming simvec.png is correctly placed in your assets folder
+import { launchImageLibrary } from 'react-native-image-picker';
+import { request, PERMISSIONS } from 'react-native-permissions';
 import logo from './assets/simvec.png';
 
 function RegisterPage() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState('');
+  // Existing state declarations
+  const [media, setMedia] = useState(null);
 
-  // Get the navigation prop
-  const navigation = useNavigation();
+
+  const requestMediaPermission = async () => {
+    const result = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
+    return result === 'granted';
+  };
+
+  const pickMedia = async () => {
+    const permissionGranted = await requestMediaPermission();
+    if (permissionGranted) {
+      launchImageLibrary({ mediaType: 'photo' }, (response) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.error) {
+          console.log('ImagePicker Error: ', response.error);
+        } else {
+          setMedia(response.assets[0]);
+        }
+      });
+    }
+  };
 
   const handleSubmit = async () => {
-    const userData = {
-      userName: name,
-      email: email,
-      password: password,
-    };
+    // Modified to include media upload logic
+    const userData = new FormData();
+    userData.append('userName', name);
+    userData.append('email', email);
+    userData.append('password', password);
+
+    if (media) {
+      userData.append('media', {
+        name: media.fileName,
+        type: media.type,
+        uri: media.uri,
+      });
+    }
 
     try {
       const response = await fetch('http://localhost:8080/api/register', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          // Set formdata accordinglyy
         },
-        body: JSON.stringify(userData),
+        body: userData,
       });
 
-      if (!response.ok) {
-        navigation.navigate('Main');
-        const errorData = await response.json();
-        setErrors(errorData);
-        console.error('Registration failed:', errorData);
-      } else {
-        console.log('Registration successful!');
-        setErrors('');
-        navigation.navigate('Main'); // Use the correct name of your main page route
-      }
+        const data = await response.json();
+        console.log(data);
+
     } catch (error) {
-      navigation.navigate('Main');
-      console.error('Error during registration:', error);
+        console.error('Error:', error);
+
     }
   };
 
+
   return (
-    <>
-      <View style={styles.imageHeader}>
-        <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
-      </View>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.container}>
-          <View style={styles.header}></View>
-          <View style={styles.registerContainer}>
-            <Text style={styles.registerHeading}>Register</Text>
-
-            <TextInput
-              style={styles.input}
-              onChangeText={setName}
-              value={name}
-              placeholder="Name"
-              autoCapitalize="none"
-            />
-
-            <TextInput
-              style={styles.input}
-              onChangeText={setEmail}
-              value={email}
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-
-            <TextInput
-              style={styles.input}
-              onChangeText={setPassword}
-              value={password}
-              placeholder="Password"
-              secureTextEntry={true}
-              autoCapitalize="none"
-            />
-            {errors.password && (
-              <Text style={styles.error}>{errors.password}</Text>
-            )}
-            <Button
-              onPress={handleSubmit}
-              title="Register"
-              color="#841584" // Example color
-            />
+      <>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.container}>
+            <View style={styles.imageHeader}>
+              <Image source={logo} style={styles.websiteLogo} />
+            </View>
+            <View style={styles.registerContainer}>
+              <Text style={styles.registerHeading}>Register</Text>
+              <TextInput
+                  style={styles.input}
+                  placeholder="Name"
+                  onChangeText={(text) => setName(text)}
+              />
+              <TextInput
+                  style={styles.input}
+                  placeholder="Email"
+                  onChangeText={(text) => setEmail(text)}
+              />
+              <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  secureTextEntry={true}
+                  onChangeText={(text) => setPassword(text)}
+              />
+              <Button title="Pick Media" onPress={pickMedia} />
+              <Button title="Register" onPress={handleSubmit} />
+            </View>
           </View>
-        </View>
-      </TouchableWithoutFeedback>
-    </>
+        </TouchableWithoutFeedback>
+      </>
   );
 }
+export default RegisterPage;
+
 
 const styles = StyleSheet.create({
   header: {},
