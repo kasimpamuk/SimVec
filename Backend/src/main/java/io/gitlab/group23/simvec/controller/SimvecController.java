@@ -1,9 +1,11 @@
 package io.gitlab.group23.simvec.controller;
 
 import io.gitlab.group23.simvec.model.SimvecUser;
+import io.gitlab.group23.simvec.model.SimVecImage;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.*;
 import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
+import io.gitlab.group23.simvec.util.ImageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -30,16 +33,20 @@ public class SimvecController {
 	private final AuthenticationService authenticationService;
 	private final UserService userService;
 	private final ImagePopulationService imagePopulationService;
-	private final IdDifferenceService idDifferenceService;
 
 	@Autowired
-	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService, UserService userService, ImagePopulationService imagePopulationService, IdDifferenceService idDifferenceService) {
+	public SimvecController(
+			VectorDatabaseService vectorDatabaseService,
+			TranslateText translateText,
+			AuthenticationService authenticationService,
+			UserService userService,
+			ImagePopulationService imagePopulationService
+	) {
 		this.vectorDatabaseService = vectorDatabaseService;
         this.translateText = translateText;
 		this.authenticationService = authenticationService;
 		this.userService = userService;
 		this.imagePopulationService = imagePopulationService;
-		this.idDifferenceService = idDifferenceService;
 	}
 
 	@PostMapping("/register")
@@ -71,18 +78,26 @@ public class SimvecController {
 		return authenticationService.verifyUserEmail(token);
 	}
 
-	@PostMapping("/transfer-images")
-	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images, @RequestParam String username) {
+	@PostMapping("/add-images")
+	public ResponseEntity<?> addImages(@RequestParam("images") MultipartFile[] images, @RequestParam("imageIds") List<Long> newImageIds) {
 		// TODO: Get user by its JWT token, and use its id or username
-		imagePopulationService.saveImages(images, username);
+		if (images.length != newImageIds.size()) {
+			throw new RuntimeException("There are missing ids for images to be added!");
+		}
+		String mockUsername = "alper";
+		SimvecUser simvecUser = userService.getUserByUsername(mockUsername);
+		// SimvecUser simvecUser = new SimvecUser(55, "alper", "alpmail", "1234", true, "5", new ArrayList<>());
+		imagePopulationService.saveImages(images, simvecUser, newImageIds);
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Images are saved successfully");
 	}
 
 	@PostMapping("/get-missing-image-ids")
-	public ResponseEntity<List<Integer>> getMissingImageIds(@RequestBody List<Integer> clientImageIds) {
-		List<Integer> serverImageIds = List.of(1, 3, 5, 7, 9);
-		return ResponseEntity.ok(idDifferenceService.getIdDifference(clientImageIds, serverImageIds));
+	public ResponseEntity<List<Long>> getMissingImageIds(@RequestBody List<Long> clientImageIds) {
+		// TODO: Get user by its JWT token, and use its id or username
+		String mockUsername = "alper";
+		SimvecUser user = userService.getUserByUsername(mockUsername);
+		List<Long> serverImageIds = user.getImageIds();
+		return ResponseEntity.ok(ImageUtil.getListDifference(clientImageIds, serverImageIds));
 	}
-
 
 }

@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ImageUtil {
@@ -33,6 +35,12 @@ public class ImageUtil {
 		} catch (Exception e) {
 			throw new RuntimeException("Image could not be read");
 		}
+	}
+
+	public static List<Long> getListDifference(List<Long> fromList, List<Long> substractedList) {
+		return fromList.stream()
+				.filter(id -> !substractedList.contains(id))
+				.collect(Collectors.toList());
 	}
 
 }

@@ -14,4 +14,6 @@ public interface UserRepository extends JpaRepository<SimvecUser, Integer> {
 
 	Optional<SimvecUser> getSimvecUserByUserName(String userName);
 
+	boolean existsByUserName(String userName);
+
 }

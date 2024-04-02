@@ -19,8 +19,18 @@ public class UserService {
 		this.userRepository = userRepository;
 	}
 
-	public SimvecUser saveUser(SimvecUser simvecUser) {
+	public SimvecUser addUser(SimvecUser simvecUser) {
+		if (userRepository.existsByEmailOrUserName(simvecUser.getEmail(), simvecUser.getUserName())) {
+			throw new RuntimeException("A user already exists with the same email or username");
+		}
 		return userRepository.save(simvecUser);
+	}
+
+	public void updateUser(SimvecUser simvecUser) {
+		if (!userRepository.existsByUserName(simvecUser.getUserName())) {
+			throw new RuntimeException("No such user with the given username exists");
+		}
+		userRepository.save(simvecUser);
 	}
 
 	public SimvecUser getUserByVerificationToken(String verificationToken) {

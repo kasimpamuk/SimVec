@@ -4,6 +4,9 @@ import io.gitlab.group23.simvec.service.authentication.passwordvalidation.ValidP
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @ToString
 @Getter
@@ -25,5 +28,22 @@ public class SimvecUser {
 
 	private boolean isEmailVerified;
 	private String emailVerificationToken;
+
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<SimVecImage> images = new ArrayList<>();
+
+	public void addImage(SimVecImage image) {
+		images.add(image);
+		image.setUser(this);
+	}
+
+	public void removeImage(SimVecImage image) {
+		images.remove(image);
+		image.setUser(null);
+	}
+
+	public List<Long> getImageIds() {
+		return images.stream().map(SimVecImage::getId).toList();
+	}
 
 }

@@ -23,7 +23,7 @@ public class RegisterService {
 
 	public SimvecUser registerUser(SimvecUser simvecUser) {
 		simvecUser.setEmailVerificationToken(generateEmailVerificationToken());
-		SimvecUser savedUser = userService.saveUser(simvecUser);
+		SimvecUser savedUser = userService.addUser(simvecUser);
 		emailService.sendVerificationEmail(simvecUser, HOST_URL + API);
 		return savedUser;
 	}
