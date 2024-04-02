@@ -117,6 +117,12 @@ function MainPage() {
                 color="#ff0000"
             />
         </View>
+        <View style={styles.header}>
+                    <Button title="Settings"
+                        onPress={() => navigation.navigate('Settings')}
+                        color="#ff0000"
+                    />
+         </View>
         <View style={styles.textAreaContainer}>
           <Text style={styles.label}>Enter text for search:</Text>
           <TextInput

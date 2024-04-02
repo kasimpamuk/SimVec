@@ -5,6 +5,8 @@ import LoginPage from './src/LoginPage'; // Make sure LoginPage is adapted for R
 import MainPage from './src/MainPage'; // Make sure MainPage is adapted for React Native
 import RegisterPage from './src/RegisterPage'; // Make sure RegisterPage is adapted for React Native
 import UserPage from './src/UserPage';
+import SettingsPage from './src/SettingsPage';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -15,7 +17,7 @@ function App() {
         <Stack.Screen
           name="Login"
           component={LoginPage}
-          options={{headerShown: false}}
+          options={{headerShown: false}}rr
         />
         <Stack.Screen
           name="Register"
@@ -31,6 +33,11 @@ function App() {
           name="User"
           component={UserPage}
           options={{headerShown: true}}
+        />
+        <Stack.Screen
+             name="Settings"
+             component={SettingsPage}
+             options={{headerShown: true}}
         />
       </Stack.Navigator>
     </NavigationContainer>
