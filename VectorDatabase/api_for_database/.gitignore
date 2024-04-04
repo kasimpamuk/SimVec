@@ -1,3 +1,9 @@
 data\Reverse_image_search.ipynb
 data\
 **/__pycache__/*
+venv
+exception
+object
+test
+train
+reverse_image_search.csv

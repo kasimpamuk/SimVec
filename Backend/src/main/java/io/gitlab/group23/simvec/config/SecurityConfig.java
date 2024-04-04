@@ -12,6 +12,9 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -22,12 +25,19 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
-				.csrf(AbstractHttpConfigurer::disable) // Disabling CSRF protection using the new method-based configuration
+				.cors(cors -> cors.configurationSource(request -> {
+					CorsConfiguration config = new CorsConfiguration();
+					config.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // Adjust as necessary for your frontend
+					config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+					config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+					return config;
+				}))
+				.csrf(AbstractHttpConfigurer::disable) // Disable CSRF for simplicity in APIs
 				.authorizeHttpRequests(authz -> authz
-						.requestMatchers(PUBLIC_ENDPOINTS).permitAll()  // Permit all requests to '/api/*'
-						.anyRequest().authenticated()  // Require authentication for any other request
+						.requestMatchers("/api/**", "/api/public/**").permitAll() // Specify more public endpoints as needed
+						.anyRequest().authenticated()
 				)
-				.httpBasic(httpBasic -> {});  // Enable HTTP Basic Authentication using the new method-based configuration
+				.httpBasic(httpBasic -> {});
 
 		return http.build();
 	}

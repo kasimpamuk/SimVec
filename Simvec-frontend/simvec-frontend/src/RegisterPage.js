@@ -1,17 +1,54 @@
 import React, { useState } from 'react';
 import './RegisterPage.css'; // Make sure to create a corresponding CSS file
 import logo from './simvec.png';
+import { useNavigate } from 'react-router-dom';
 
 function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate(); // Hook to navigate to different routes
+  const [errors, setErrors] = useState('');
 
-  const handleSubmit = (event) => {
+  //password - one big one small letter at least 12 characters.
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // Here you would usually send the data to the server
-    console.log('Registering with:', name, email, password);
-  };
+
+    // Prepare the user data
+    const userData = {
+        userName: name, // Value from a state variable or form input
+        email: email,  // Value from a state variable or form input
+        password: password, // Value from a state variable or form input
+    };
+
+    try {
+        // Sending the request to the backend
+        const response = await fetch('http://localhost:8080/api/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData),
+        });
+
+        if (!response.ok) {
+            // If the server response is not OK, handle errors
+            const errorData = await response.json();
+            setErrors(errorData);
+            console.error("Registration failed:", errorData);
+            // Here you can set error messages to display to the user
+        } else {
+            // Handle success scenario (e.g., navigating to a login page or showing a success message)
+            console.log("Registration successful!");
+            setErrors('');
+            navigate('/main-page');
+        }
+    } catch (error) {
+        console.error("Error during registration:", error);
+    }
+};
+
 
   return (
     <>
@@ -56,7 +93,9 @@ function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          
         </div>
+        <div className="error">{errors.password}</div> 
 
         <button type="submit" className="register-btn">Register</button>
       </form>

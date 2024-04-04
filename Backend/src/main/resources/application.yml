@@ -9,13 +9,25 @@ vector-database:
 
 search:
   image:
-    save-directory: "/home/leto/demo_mid"
+    save-directory: "/Users/eliflale/Desktop"
 
 gallery:
   images:
     save-directory: "C:/Users/lenovo/Desktop/temp-server"
 
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: eliflale
+    password: simvec
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   mail:
     host: smtp.office365.com
     port: 587

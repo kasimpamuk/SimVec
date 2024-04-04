@@ -22,4 +22,5 @@ public class AuthenticationService {
 		return registerService.verifyUserEmail(token);
 	}
 
+
 }
