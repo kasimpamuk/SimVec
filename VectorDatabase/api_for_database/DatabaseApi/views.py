@@ -101,7 +101,9 @@ def create_milvus_entities(user_dataset):
         inputs = processor(images=image, return_tensors="pt")
         image_features = model.get_image_features(**inputs)
         # Ensure the tensor is detached from the computational graph before converting
-        embeddings.append(image_features.squeeze(0).detach().numpy().tolist())
+        embedding = image_features.squeeze(0).detach().numpy().tolist()
+        norm_embedding = embedding/np.linalg.norm(embedding)
+        embeddings.append(norm_embedding)
 
     paths = df['path'].tolist()
     entities = [[path for path in paths],
@@ -172,9 +174,10 @@ def image_based_search(request):
         query_inputs = processor(images=query_image, return_tensors="pt")
         query_image_features = model.get_image_features(**query_inputs)
         image_embedding = query_image_features.squeeze(0).detach().numpy().tolist()
+        norm_embedding = image_embedding/np.linalg.norm(image_embedding)
 
         results = collection.search(
-        data=[image_embedding], 
+        data=[norm_embedding], 
         anns_field="embedding", 
         # the sum of `offset` in `param` and `limit` 
         # should be less than 16384.
@@ -215,9 +218,10 @@ def text_based_search(request):
         text_inputs = processor(text=query_text, return_tensors="pt", padding=True, truncation=True, max_length=77)
         query_text_features = model.get_text_features(**text_inputs)
         text_embedding = query_text_features.squeeze(0).detach().numpy().tolist()
+        norm_text_embedding = text_embedding/np.linalg.norm(text_embedding)
 
         results = collection.search(
-        data=[text_embedding], 
+        data=[norm_text_embedding], 
         anns_field="embedding", 
         # the sum of `offset` in `param` and `limit` 
         # should be less than 16384.
