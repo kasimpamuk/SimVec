@@ -61,8 +61,8 @@ public class SimvecController {
 
 	@PostMapping("/text-based-search")
 	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
-		String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
-		vectorDatabaseRequest.setInput(translatedText);
+		// String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
+		// vectorDatabaseRequest.setInput(translatedText);
 		List<byte[]> images = vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest);
 		return ResponseEntity.ok(images);
 	}
