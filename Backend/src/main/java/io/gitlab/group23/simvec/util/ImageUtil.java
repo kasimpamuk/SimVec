@@ -12,9 +12,15 @@ import java.nio.file.Paths;
 public class ImageUtil {
 
 	public static void saveImage(String fileName, String directoryPath, byte[] data) {
-		String filePath = Paths.get(directoryPath, fileName).toString();
-		log.info("File Path: " + filePath);
-		try (FileOutputStream fileOutputStream = new FileOutputStream(filePath)) {
+		Path filePath = Paths.get(directoryPath);
+		try {
+			Files.createDirectories(filePath);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		String path = filePath.resolve(fileName).toString();
+		log.info("File Path: " + path);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(path)) {
 			fileOutputStream.write(data);
 		} catch (IOException e) {
 			throw new RuntimeException("Image could not be saved");

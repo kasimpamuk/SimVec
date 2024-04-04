@@ -11,6 +11,10 @@ search:
   image:
     save-directory: "/Users/eliflale/Desktop"
 
+gallery:
+  images:
+    save-directory: "C:/Users/lenovo/Desktop/temp-server"
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres

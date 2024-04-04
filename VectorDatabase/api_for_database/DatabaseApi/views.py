@@ -1,15 +1,13 @@
-# Django view for handling image or text conversion with external services
 import json
 import requests
 import numpy as np
 import csv
+import os
 from glob import glob
 from pathlib import Path
-from statistics import mean
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from towhee import pipe, ops, DataCollection
 from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Collection, utility
 
 ##############
@@ -17,10 +15,6 @@ from PIL import Image
 import pandas as pd
 import torch
 from transformers import CLIPProcessor, CLIPModel
-
-# Load the dataset
-dataset_path = 'reverse_image_search.csv'  
-df = pd.read_csv(dataset_path)
 
 # Load the CLIP model and processor
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
@@ -33,12 +27,6 @@ search_params = {
     "params": {"nprobe": 10}
 }
 
-##############
-
-
-MODEL = 'resnet50'
-DEVICE = None # if None, use default device (cuda is enabled if available)
-
 # Milvus parameters
 HOST = '127.0.0.1'
 PORT = '19530'
@@ -48,28 +36,40 @@ DIM = 512
 INDEX_TYPE = 'IVF_FLAT'
 METRIC_TYPE = 'L2'
 
-# path to csv (column_1 indicates image path) OR a pattern of image paths
-INSERT_SRC = 'reverse_image_search.csv'
-QUERY_SRC = './test/*/*.JPEG'
+def csv_maker(dataset_path, user_id):
+    # Directory where the CSV files will be saved
+    csv_directory = "user_datasets"
+    
+    if not os.path.exists(csv_directory):
+        os.makedirs(csv_directory)
+    
+    output_csv = os.path.join(csv_directory, "image_paths_" + str(user_id) + ".csv")
+    
+    image_data = []
+    id_counter = 0
 
-# Load image path
-def load_image(x):
-    if x.endswith('csv'):
-        with open(x) as f:
-            reader = csv.reader(f)
-            next(reader)
-            for item in reader:
-                yield item[1]
+    for root, dirs, files in os.walk(dataset_path):
+        for file in files:
+            if file.endswith(('.PNG', '.JPG', '.JPEG', '.png', '.jpg', '.jpeg')):
+                image_path = os.path.join(root, file)
+                image_data.append([id_counter, image_path])
+                id_counter += 1
+                
+                # Debug print to check the file paths being added
+                #print(f"Adding: {id_counter}, {image_path}")
+
+    with open(output_csv, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['id', 'path'])
+        for data in image_data:
+            writer.writerow(data)
+
+    if image_data:
+        print(f"Paths and IDs of all images have been written to {output_csv}")
     else:
-        for item in glob(x):
-            yield item
+        print(f"No images found. Please check the dataset path and file extensions.")
+    return output_csv
 
-p_embed = (
-    pipe.input('src')
-    .flat_map('src', 'img_path', load_image)
-    .map('img_path', 'img', ops.image_decode())
-    .map('img', 'vec', ops.image_embedding.timm(model_name=MODEL, device=DEVICE))
-)
 
 # Create milvus collection (delete first if exists)
 def create_milvus_collection(collection_name):
@@ -92,16 +92,18 @@ def create_milvus_collection(collection_name):
     collection.create_index(field_name='embedding', index_params=index_params)
     return collection
 
-def create_milvus_entities():
+def create_milvus_entities(user_dataset):
     embeddings = []
-
+    df = pd.read_csv(user_dataset)
     for index, row in df.iterrows():
         image_path = row['path']  # Assuming the path is in a column named 'path'
         image = Image.open(image_path).convert('RGB')  # Ensure image is in RGB
         inputs = processor(images=image, return_tensors="pt")
         image_features = model.get_image_features(**inputs)
         # Ensure the tensor is detached from the computational graph before converting
-        embeddings.append(image_features.squeeze(0).detach().numpy().tolist())
+        embedding = image_features.squeeze(0).detach().numpy().tolist()
+        norm_embedding = embedding/np.linalg.norm(embedding)
+        embeddings.append(norm_embedding)
 
     paths = df['path'].tolist()
     entities = [[path for path in paths],
@@ -109,7 +111,7 @@ def create_milvus_entities():
     return entities
 
 
-def initialize_milvus(collection_name):
+def initialize_milvus(collection_name, image_folder_path):
     # Connect to Milvus service
     connections.connect(host=HOST, port=PORT)
 
@@ -128,7 +130,7 @@ def initialize_milvus(collection_name):
     else:
         print(f"Creating new collection: {collection_name}")
         collection = create_milvus_collection(collection_name)
-        entities = create_milvus_entities()
+        entities = create_milvus_entities(image_folder_path)
         mr = collection.insert(entities)
         print("mr: ", mr)
 
@@ -140,10 +142,14 @@ def create_collection_for_new_user(request):
     # request decoding
     data = json.loads(request.body)
     user_id = data.get('user_id')
-
-    # Connect to Milvus service
+    # get the path of the image folder of the user
+    image_folder_path = data.get('image_folder_path')
+    print(image_folder_path)
+    # Create a collection for the new user
     collection_name = 'user_' + (str) (user_id) + '_gallery'
-    collection = initialize_milvus(collection_name)
+    user_dataset = csv_maker(image_folder_path, user_id)
+    print(user_dataset)
+    collection = initialize_milvus(collection_name, user_dataset)
     collection.load()
 
     return JsonResponse({'message': 'Collection created successfully', 'collection_name': collection_name})
@@ -155,11 +161,11 @@ def image_based_search(request):
     data = json.loads(request.body)
     topk = data.get('topk')
     query_image_path = data.get('input')
-    #user_id = data.get('user_id')
+    user_id = data.get('user_id')
 
     # Connect to Milvus service
-    #collection_name = 'user_' + (str) (user_id) + '_gallery'
-    collection_name = 'user_2_gallery'
+    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    #collection_name = 'user_2_gallery'
     collection = initialize_milvus(collection_name)
     collection.load()
 
@@ -168,9 +174,10 @@ def image_based_search(request):
         query_inputs = processor(images=query_image, return_tensors="pt")
         query_image_features = model.get_image_features(**query_inputs)
         image_embedding = query_image_features.squeeze(0).detach().numpy().tolist()
+        norm_embedding = image_embedding/np.linalg.norm(image_embedding)
 
         results = collection.search(
-        data=[image_embedding], 
+        data=[norm_embedding], 
         anns_field="embedding", 
         # the sum of `offset` in `param` and `limit` 
         # should be less than 16384.
@@ -182,7 +189,7 @@ def image_based_search(request):
         
         for i in range(len(result_list)):
             result_list[i] = result_list[i][1:]
-            result_list[i] = "/home/atakan/Desktop/simvec/tarnsformers_VectorDatabase/api_for_database" + result_list[i]
+            result_list[i] = "/home/atakan/Desktop/simvec/VectorDatabase/api_for_database" + result_list[i]
         print(result_list)
         
         return JsonResponse({'message': 'Image processed successfully', 'results': list(result_list)})
@@ -211,9 +218,10 @@ def text_based_search(request):
         text_inputs = processor(text=query_text, return_tensors="pt", padding=True, truncation=True, max_length=77)
         query_text_features = model.get_text_features(**text_inputs)
         text_embedding = query_text_features.squeeze(0).detach().numpy().tolist()
+        norm_text_embedding = text_embedding/np.linalg.norm(text_embedding)
 
         results = collection.search(
-        data=[text_embedding], 
+        data=[norm_text_embedding], 
         anns_field="embedding", 
         # the sum of `offset` in `param` and `limit` 
         # should be less than 16384.
@@ -225,7 +233,7 @@ def text_based_search(request):
         
         for i in range(len(result_list)):
             result_list[i] = result_list[i][1:]
-            result_list[i] = "/home/atakan/Desktop/simvec/tarnsformers_VectorDatabase/api_for_database" + result_list[i]
+            result_list[i] = "/home/atakan/Desktop/simvec/VectorDatabase/api_for_database" + result_list[i]
         print(result_list)
         return JsonResponse({'message': 'Image processed successfully', 'results': list(result_list)})
 
@@ -237,36 +245,59 @@ def text_based_search(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def image_embedding_and_storage(request):
-    #return JsonResponse({'message': 'Hit image_embedding_and_storage'})
-    collection = initialize_milvus()
-    
-    try:
-        # Assuming the request body will contain the path to the image(s)
-        image_paths = request.body.decode('utf-8').split('\n')  
+    data = json.loads(request.body)
+    user_id = data.get('user_id')
+    updated_images = data.get('updated_images')
+    operation = data.get('operation')
+    # I need to find the user's csv file and collection, and update them with the new images
+    user_dataset = 'user_datasets/image_paths_' + (str) (user_id) + '.csv'
 
-        # Process each image and store the embeddings
-        stored_ids = []
-        for image_path in image_paths:
-            
-            # Use the Towhee pipeline to process and insert the image embedding into Milvus
-            # Insert data
-            p_insert = (
-                p_embed.map(('img_path', 'vec'), 'mr', ops.ann_insert.milvus_client(
-                            host=HOST,
-                            port=PORT,
-                            collection_name='image_based_search'
-                            ))
-                .output('mr')
-            )
-            p_insert_result = p_insert(image_path)
-            stored_ids.extend(p_insert_result)
 
-        # Commit the changes to the Milvus database
+    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    collection = initialize_milvus(collection_name, user_dataset)
+    if operation == 'insert':
+        # get the id of the last image in the csv file
+        with open(user_dataset, 'r') as file:
+            reader = csv.reader(file)
+            data = list(reader)
+            last_id = data[-1][0]
+
+        # add the new images to the csv file
+        # create a temp csv file to store the new images
+        last_id = (int) (last_id) + 1
+        temp_csv = 'temp_image_paths_' + (str) (user_id) + '.csv'
+        with open(temp_csv, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['id', 'path'])
+            for image in updated_images:
+                writer.writerow([last_id, image])
+                last_id = (int) (last_id) + 1
+        
+        # add the temp csv to the user's csv file
+        with open(user_dataset, 'a') as f:
+            with open(temp_csv, 'r') as t:
+                next(t)
+                for line in t:
+                    f.write(line)
+        # insert the new images to the collection
+        entities = create_milvus_entities(temp_csv)
+        mr = collection.insert(entities)
         collection.load()
 
-        # Return the list of Milvus primary keys as a response
-        return JsonResponse({'message': 'Images processed and stored successfully', 'stored_ids': stored_ids})
+        #delete the temp csv file
+        os.remove(temp_csv)
+        #print("mr: ", mr)
+        return JsonResponse({'message': 'Images added successfully', 'collection_name': collection_name})
+    
+    elif operation == 'delete':
+        expr = " || ".join([f"path == '{path}'" for path in updated_images])
+        mr = collection.delete(expr)
+        #print("mr: ", mr)
+        collection.load()
+        collection.flush()
+        # delete the images from the csv file
+        df = pd.read_csv(user_dataset)
+        df = df[~df['path'].isin(updated_images)]
+        df.to_csv(user_dataset, index=False)
 
-    except Exception as e:
-        # Handle any errors that occur during the process
-        return JsonResponse({'error': str(e)},status=500)
+        return JsonResponse({'message': 'Images deleted successfully', 'collection_name': collection_name})
