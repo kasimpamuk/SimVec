@@ -14,6 +14,4 @@ public class VectorDatabaseRequest {
 
 	private String input;
 	private String topk;
-	private String user_id;
-
 }

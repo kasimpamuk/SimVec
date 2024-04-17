@@ -29,6 +29,7 @@ public class ImageUtil {
 
 	public static byte[] getImageData(String imagePath) {
 		try {
+			System.out.println(imagePath);
 			return Files.readAllBytes(Path.of(imagePath));
 		} catch (Exception e) {
 			throw new RuntimeException("Image could not be read");

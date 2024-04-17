@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { toByteArray as btoa } from 'base64-js';
 import logo from './assets/simvec.png';
 
 function MainPage() {
@@ -24,10 +25,11 @@ function MainPage() {
 
   const data = {
     input: text,
-    topk: searchNumber,
+    topk: searchNumber
   };
 
-  const handleTextSubmit = async () => {
+  const handleTextSubmit = async (e) => {
+  e.preventDefault();
     if (!text) {
       Alert.alert('Error', 'Please enter some text');
       return;
@@ -35,7 +37,7 @@ function MainPage() {
 
     try {
       const response = await fetch(
-          'http://localhost:8080/api/text-based-search',
+          'http://10.0.2.2:8080/api/text-based-search',
           {
             method: 'POST',
             headers: {
@@ -44,11 +46,13 @@ function MainPage() {
             body: JSON.stringify(data),
           },
       );
+
       const base64Images = await response.json();
-      const urls = base64Images.map(
-          base64 => `data:image/jpeg;base64,${base64}`,
-      );
+
+       const urls = base64Images.map(base64 => `data:image/jpeg;base64,${base64}`);
       setImageList(urls);
+      console.log(imageList);
+      console.error(urls);
     } catch (error) {
       console.error('Error processing text:', error);
       Alert.alert('Error', 'Error processing text');
@@ -81,11 +85,11 @@ function MainPage() {
     }
     const imageData = {
       image: image.base64,
-      searchNumber: searchNumber,
+      searchNumber: searchNumber
     };
 
     try {
-      const response = await fetch(`http://localhost:8080/api/image-based-search/${searchNumber}`, {
+      const response = await fetch(`http://10.0.2.2:8080/api/image-based-search/${searchNumber}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -142,6 +146,7 @@ function MainPage() {
           )}
         </TouchableOpacity>
         <Button title="Upload Image" onPress={handleImageSubmit} color="#32cd32" />
+
         {imageList.length > 0 && (
             <View style={styles.resultsContainer}>
               <Text style={styles.subheading}>Returned Images:</Text>

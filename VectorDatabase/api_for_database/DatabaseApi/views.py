@@ -161,21 +161,20 @@ def image_based_search(request):
     data = json.loads(request.body)
     topk = data.get('topk')
     query_image_path = data.get('input')
-    user_id = data.get('user_id')
-
+    print(query_image_path)
+    #user_id = data.get('user_id')
+    user_id = "atakan"
     # Connect to Milvus service
     collection_name = 'user_' + (str) (user_id) + '_gallery'
     #collection_name = 'user_2_gallery'
-    collection = initialize_milvus(collection_name)
+    collection = initialize_milvus(collection_name, None)
     collection.load()
-
     try:    
         query_image = Image.open(query_image_path).convert('RGB')  
         query_inputs = processor(images=query_image, return_tensors="pt")
         query_image_features = model.get_image_features(**query_inputs)
         image_embedding = query_image_features.squeeze(0).detach().numpy().tolist()
         norm_embedding = image_embedding/np.linalg.norm(image_embedding)
-
         results = collection.search(
         data=[norm_embedding], 
         anns_field="embedding", 
@@ -185,11 +184,11 @@ def image_based_search(request):
         limit=(int) (topk),
         expr=None,
         )
+        print(results)
         result_list = results[0].ids
         
         for i in range(len(result_list)):
-            result_list[i] = result_list[i][1:]
-            result_list[i] = "/home/atakan/Desktop/simvec/VectorDatabase/api_for_database" + result_list[i]
+            result_list[i] =  "/" + result_list[i][1:]
         print(result_list)
         
         return JsonResponse({'message': 'Image processed successfully', 'results': list(result_list)})
@@ -206,12 +205,12 @@ def text_based_search(request):
     data = json.loads(request.body)
     topk = data.get('topk')
     query_text = data.get('input')
-    user_id = data.get('user_id')
-
+    #user_id = data.get('user_id')
+    user_id = "atakan"
     # Connect to Milvus service
     collection_name = 'user_' + (str) (user_id) + '_gallery'
     #collection_name = 'user_2_gallery'
-    collection = initialize_milvus(collection_name) 
+    collection = initialize_milvus(collection_name, None) 
     collection.load()
 
     try:
@@ -232,9 +231,8 @@ def text_based_search(request):
         result_list = results[0].ids
         
         for i in range(len(result_list)):
-            result_list[i] = result_list[i][1:]
-            result_list[i] = "/home/atakan/Desktop/simvec/VectorDatabase/api_for_database" + result_list[i]
-        print(result_list)
+            result_list[i] =  "/" + result_list[i][1:]
+        #print(result_list)
         return JsonResponse({'message': 'Image processed successfully', 'results': list(result_list)})
 
     except Exception as e:

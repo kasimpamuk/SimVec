@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"})
 @Slf4j
 public class SimvecController {
 
@@ -45,6 +46,7 @@ public class SimvecController {
 
 	@PostMapping("/register")
 	public ResponseEntity<SimvecUser> registerUser(@Validated @RequestBody SimvecUser simvecUser) {
+		//System.out.println("hello");
 		return ResponseEntity.ok(authenticationService.registerUser(simvecUser));
 	}
 
@@ -61,6 +63,7 @@ public class SimvecController {
 
 	@PostMapping("/text-based-search")
 	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
+		System.out.println("Text Based Search Endpoint");
 		// String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
 		// vectorDatabaseRequest.setInput(translatedText);
 		List<byte[]> images = vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest);

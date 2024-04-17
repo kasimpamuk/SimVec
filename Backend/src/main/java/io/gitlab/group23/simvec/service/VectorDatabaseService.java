@@ -41,7 +41,7 @@ public class VectorDatabaseService {
 		ImageUtil.saveImage(SEARCHED_IMAGE_FILE_NAME, SEARCH_IMAGE_SAVE_DIRECTORY, image.getBytes());
 		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(
 				this.getURI(BASE_URL, IMAGE_BASED_SEARCH_ENDPOINT),
-				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY + "/" + SEARCHED_IMAGE_FILE_NAME, topk, "atakan")
+				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY + "/" + SEARCHED_IMAGE_FILE_NAME, topk)
 		);
 		return this.getAllImages(similarImagePaths);
 	}
