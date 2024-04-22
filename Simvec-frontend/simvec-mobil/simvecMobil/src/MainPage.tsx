@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {
   View,
@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
+import RNFS from 'react-native-fs';
 import {toByteArray as btoa} from 'base64-js';
 import logo from './assets/simvec.png';
 
@@ -127,7 +128,33 @@ function MainPage() {
     }
   };
 
-  // This function sends the POST request with the username as form-data.
+  const getGalleryImageNames = async () => {
+    const directories = [
+      RNFS.DownloadDirectoryPath,
+      RNFS.DocumentDirectoryPath,
+      RNFS.PicturesDirectoryPath,
+    ];
+
+    let imageNames: any[] = [];
+
+    for (const dir of directories) {
+      console.log(dir);
+      try {
+        const files = await RNFS.readDir(dir);
+        console.log(files);
+        const imageFiles = files.filter(file =>
+          ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
+        );
+        console.log(imageFiles);
+        imageNames = imageNames.concat(imageFiles.map(file => file.name));
+      } catch (error) {
+        console.error(`Error reading directory ${dir}:`, error);
+      }
+    }
+    console.log(imageNames);
+    return imageNames;
+  };
+
   const synchronizationHandler = async () => {
     console.log('Sending request to synchronize images');
     try {
@@ -138,7 +165,7 @@ function MainPage() {
         'http://10.0.2.2:8080/api/synchronize-images',
         {
           method: 'POST',
-          body: formData, // Send as form-data
+          body: formData,
         },
       );
 
@@ -147,9 +174,24 @@ function MainPage() {
         throw new Error('Network response was not ok');
       }
 
-      const imageFiles = await response.json(); // Convert response to JSON
-      console.log('Received image files:', imageFiles);
-      setImageFilesName(imageFiles); // Update state with image file names
+      const backendImageFiles = await response.json(); // Image names from backend
+      const galleryImageFiles = await getGalleryImageNames(); // Image names from gallery
+
+      // Find unique images in backend response
+      const uniqueBackendImages = backendImageFiles.filter(
+        (img: any) => !galleryImageFiles.includes(img),
+      );
+
+      console.log('Backend unique images:', uniqueBackendImages);
+
+      // Find unique images in gallery
+      const uniqueGalleryImages = galleryImageFiles.filter(
+        img => !backendImageFiles.includes(img),
+      );
+
+      console.log('Gallery unique images:', uniqueGalleryImages);
+
+      setImageFilesName(backendImageFiles); // Set backend images in state
     } catch (error) {
       console.error('Error during synchronization:', error);
       Alert.alert('Error', 'Failed to synchronize images');
