@@ -31,6 +31,10 @@ function MainPage() {
     topk: searchNumber,
   };
 
+  const user_info = {
+    username: 'alper',
+  };
+
   const handleTextSubmit = async e => {
     e.preventDefault();
     if (!text) {
@@ -123,37 +127,33 @@ function MainPage() {
     }
   };
 
+  // This function sends the POST request with the username as form-data.
   const synchronizationHandler = async () => {
-    // Declare a state variable to hold the list of image file names
-    console.log('a');
-
+    console.log('Sending request to synchronize images');
     try {
+      const formData = new FormData();
+      formData.append('username', user_info.username);
+
       const response = await fetch(
-        `http://10.0.2.2:8080/api/synchronize-images`,
+        'http://10.0.2.2:8080/api/synchronize-images',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({username: 'alper'}), // Correctly format the body as JSON
+          body: formData, // Send as form-data
         },
       );
 
       if (!response.ok) {
+        console.log(await response.json());
         throw new Error('Network response was not ok');
       }
 
-      // Convert the response to JSON and store it in the state variable
-
-      const imageNameList = await response.json();
-      console.log(imageNameList);
-      setImageFilesName(imageNameList); // Store the list in the state variable
+      const imageFiles = await response.json(); // Convert response to JSON
+      console.log('Received image files:', imageFiles);
+      setImageFilesName(imageFiles); // Update state with image file names
     } catch (error) {
-      console.error('Error retrieving image files:', error);
-      Alert.alert('Error', 'Error retrieving image files');
+      console.error('Error during synchronization:', error);
+      Alert.alert('Error', 'Failed to synchronize images');
     }
-    console.log(imageFilesName);
-    return imageFilesName; // Return the list of image files
   };
 
   return (

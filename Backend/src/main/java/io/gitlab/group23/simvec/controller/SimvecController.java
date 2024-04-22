@@ -88,18 +88,17 @@ public class SimvecController {
 	}
 
 	@PostMapping("/synchronize-images")
-	public ResponseEntity<?> synchronizeImages(@RequestParam String username) {
-		System.out.println("a");
-		try {
+	public ResponseEntity<?> synchronizeImages(@RequestParam("username") String username) {
+		System.out.println("Request received with username: " + username);
 
-			List<String> imageFiles = imageSynchronizationService.getImages(username);
+		try {
+			List<String> imageFiles = imageSynchronizationService.getImages("alper"); // Use the passed username
 
 			return new ResponseEntity<>(imageFiles, HttpStatus.OK);
 
 		} catch (RuntimeException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-
 	}
 
 
