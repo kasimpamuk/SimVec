@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, {useState} from 'react';
+import {useNavigation} from '@react-navigation/native';
 import {
   View,
   Text,
@@ -12,24 +12,27 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
-import { toByteArray as btoa } from 'base64-js';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {toByteArray as btoa} from 'base64-js';
 import logo from './assets/simvec.png';
 
 function MainPage() {
   const [text, setText] = useState('');
   const [searchNumber, setSearchNumber] = useState(5);
   const [imageList, setImageList] = useState([]);
-  const [image, setImage] = useState<{ uri: string; base64?: string } | null>(null);
+  const [imageFilesName, setImageFilesName] = useState([]);
+  const [image, setImage] = useState<{uri: string; base64?: string} | null>(
+    null,
+  );
   const navigation = useNavigation();
 
   const data = {
     input: text,
-    topk: searchNumber
+    topk: searchNumber,
   };
 
-  const handleTextSubmit = async (e) => {
-  e.preventDefault();
+  const handleTextSubmit = async e => {
+    e.preventDefault();
     if (!text) {
       Alert.alert('Error', 'Please enter some text');
       return;
@@ -37,19 +40,21 @@ function MainPage() {
 
     try {
       const response = await fetch(
-          'http://10.0.2.2:8080/api/text-based-search',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
+        'http://10.0.2.2:8080/api/text-based-search',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
+          body: JSON.stringify(data),
+        },
       );
 
       const base64Images = await response.json();
 
-       const urls = base64Images.map(base64 => `data:image/jpeg;base64,${base64}`);
+      const urls = base64Images.map(
+        base64 => `data:image/jpeg;base64,${base64}`,
+      );
       setImageList(urls);
       console.log(imageList);
       console.error(urls);
@@ -66,13 +71,16 @@ function MainPage() {
       includeBase64: true,
     };
 
-    launchImageLibrary(options, (response) => {
+    launchImageLibrary(options, response => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error);
       } else {
-        const source = { uri: response.assets![0].uri, base64: response.assets![0].base64 };
+        const source = {
+          uri: response.assets![0].uri,
+          base64: response.assets![0].base64,
+        };
         setImage(source);
       }
     });
@@ -80,94 +88,138 @@ function MainPage() {
 
   const handleImageSubmit = async () => {
     if (!image || !image.base64) {
-      Alert.alert("Error", "Please select an image to upload");
+      Alert.alert('Error', 'Please select an image to upload');
       return;
     }
     const imageData = {
       image: image.base64,
-      searchNumber: searchNumber
+      searchNumber: searchNumber,
     };
 
     try {
-      const response = await fetch(`http://10.0.2.2:8080/api/image-based-search/${searchNumber}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `http://10.0.2.2:8080/api/image-based-search/${searchNumber}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(imageData),
         },
-        body: JSON.stringify(imageData)
-      });
+      );
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
 
       const base64Images: string[] = await response.json();
-      const urls = base64Images.map(base64 => `data:image/jpeg;base64,${base64}`);
+      const urls = base64Images.map(
+        base64 => `data:image/jpeg;base64,${base64}`,
+      );
       setImageList(urls);
     } catch (error) {
-      console.error("Error uploading image:", error);
-      Alert.alert("Error", "Error uploading image");
+      console.error('Error uploading image:', error);
+      Alert.alert('Error', 'Error uploading image');
     }
   };
 
+  const synchronizationHandler = async () => {
+    // Declare a state variable to hold the list of image file names
+    console.log('a');
+
+    try {
+      const response = await fetch(
+        `http://10.0.2.2:8080/api/synchronize-images`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({username: 'alper'}), // Correctly format the body as JSON
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      // Convert the response to JSON and store it in the state variable
+
+      const imageNameList = await response.json();
+      console.log(imageNameList);
+      setImageFilesName(imageNameList); // Store the list in the state variable
+    } catch (error) {
+      console.error('Error retrieving image files:', error);
+      Alert.alert('Error', 'Error retrieving image files');
+    }
+    console.log(imageFilesName);
+    return imageFilesName; // Return the list of image files
+  };
+
   return (
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <Image source={logo} style={styles.logo} resizeMode="contain" />
-        </View>
-        <View style={styles.header}>
-            <Button title="User Page"
-                onPress={() => navigation.navigate('User')}
-                color="#ff0000"
-            />
-        </View>
-        <View style={styles.header}>
-                    <Button title="Settings"
-                        onPress={() => navigation.navigate('Settings')}
-                        color="#ff0000"
-                    />
-         </View>
-        <View style={styles.textAreaContainer}>
-          <Text style={styles.label}>Enter text for search:</Text>
-          <TextInput
-              style={styles.textArea}
-              value={text}
-              onChangeText={setText}
-              placeholder="Type here..."
-              multiline
-          />
-        </View>
-        <Button title="Submit Text" onPress={handleTextSubmit} color="#32cd32" />
-        <TouchableOpacity style={styles.imagePicker} onPress={handleImageChange}>
-          {image ? (
-              <Image source={{ uri: image.uri }} style={styles.imagePreview} />
-          ) : (
-              <Text style={styles.imagePickerText}>Tap to select an image</Text>
-          )}
-        </TouchableOpacity>
-        <Button title="Upload Image" onPress={handleImageSubmit} color="#32cd32" />
-
-        {imageList.length > 0 && (
-            <View style={styles.resultsContainer}>
-              <Text style={styles.subheading}>Returned Images:</Text>
-              {imageList.map((imgSrc, index) => (
-                  <Image
-                      key={index}
-                      source={{ uri: imgSrc }}
-                      style={styles.resultImage}
-                  />
-              ))}
-            </View>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Image source={logo} style={styles.logo} resizeMode="contain" />
+      </View>
+      <View style={styles.header}>
+        <Button
+          title="User Page"
+          onPress={() => navigation.navigate('User')}
+          color="#ff0000"
+        />
+      </View>
+      <View style={styles.header}>
+        <Button
+          title="Settings"
+          onPress={() => navigation.navigate('Settings')}
+          color="#ff0000"
+        />
+      </View>
+      <View style={styles.textAreaContainer}>
+        <Text style={styles.label}>Enter text for search:</Text>
+        <TextInput
+          style={styles.textArea}
+          value={text}
+          onChangeText={setText}
+          placeholder="Type here..."
+          multiline
+        />
+      </View>
+      <Button title="Submit Text" onPress={handleTextSubmit} color="#32cd32" />
+      <TouchableOpacity style={styles.imagePicker} onPress={handleImageChange}>
+        {image ? (
+          <Image source={{uri: image.uri}} style={styles.imagePreview} />
+        ) : (
+          <Text style={styles.imagePickerText}>Tap to select an image</Text>
         )}
+      </TouchableOpacity>
+      <Button
+        title="Upload Image"
+        onPress={handleImageSubmit}
+        color="#32cd32"
+      />
 
-        <View style ={styles.header}>
-            <Button
-                title="Synchronize"
-                onPress={() => Alert.alert('Synchronization', 'Synchronization in progress...')}
-                color="#32cd32"
+      {imageList.length > 0 && (
+        <View style={styles.resultsContainer}>
+          <Text style={styles.subheading}>Returned Images:</Text>
+          {imageList.map((imgSrc, index) => (
+            <Image
+              key={index}
+              source={{uri: imgSrc}}
+              style={styles.resultImage}
             />
+          ))}
         </View>
-      </ScrollView>
+      )}
+
+      <View style={styles.header}>
+        <Button
+          title="Synchronize"
+          onPress={synchronizationHandler}
+          color="#32cd32"
+        />
+      </View>
+    </ScrollView>
   );
 }
 
@@ -242,7 +294,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 5,
   },
-
 });
 
 export default MainPage;

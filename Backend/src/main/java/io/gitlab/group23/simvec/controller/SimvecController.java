@@ -7,12 +7,14 @@ import io.gitlab.group23.simvec.service.TranslateText;
 import io.gitlab.group23.simvec.service.UserService;
 import io.gitlab.group23.simvec.service.VectorDatabaseService;
 import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
+import io.gitlab.group23.simvec.service.ImageSynchronizationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +37,16 @@ public class SimvecController {
 	private final UserService userService;
 	private final ImagePopulationService imagePopulationService;
 
+	private final ImageSynchronizationService imageSynchronizationService;
+
 	@Autowired
-	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService, UserService userService, ImagePopulationService imagePopulationService) {
+	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService, UserService userService, ImagePopulationService imagePopulationService, ImageSynchronizationService imageSynchronizationService) {
 		this.vectorDatabaseService = vectorDatabaseService;
         this.translateText = translateText;
 		this.authenticationService = authenticationService;
 		this.userService = userService;
 		this.imagePopulationService = imagePopulationService;
+		this.imageSynchronizationService = imageSynchronizationService;
 	}
 
 	@PostMapping("/register")
@@ -81,6 +86,22 @@ public class SimvecController {
 		imagePopulationService.saveImages(images, "alper");
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Images are saved successfully");
 	}
+
+	@PostMapping("/synchronize-images")
+	public ResponseEntity<?> synchronizeImages(@RequestParam String username) {
+		System.out.println("a");
+		try {
+
+			List<String> imageFiles = imageSynchronizationService.getImages(username);
+
+			return new ResponseEntity<>(imageFiles, HttpStatus.OK);
+
+		} catch (RuntimeException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+
 
 
 }

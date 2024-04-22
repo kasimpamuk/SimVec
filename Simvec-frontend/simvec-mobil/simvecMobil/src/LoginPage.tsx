@@ -27,8 +27,8 @@ function LoginPage() {
       email: email,
       password: password,
     };
-
-    try {
+    navigation.navigate('Main'); // Adjust with your main page route name
+    /*try {
       const response = await fetch('http://localhost:8080/api/login', {
         method: 'POST',
         headers: {
@@ -48,7 +48,7 @@ function LoginPage() {
       }
     } catch (error) {
       console.error('Error during login:', error);
-    }
+    }*/
   };
 
   // Function to navigate to RegisterPage
@@ -57,31 +57,49 @@ function LoginPage() {
   };
 
   return (
-      <>
-        <View style={styles.imageHeader}>
-          <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
-        </View>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={styles.container}>
-            <View style={styles.header}></View>
-            <View style={styles.loginContainer}>
-              <Text style={styles.loginHeading}>Login</Text>
-              {/* Email and Password Inputs */}
-              <TextInput style={styles.input} onChangeText={setEmail} value={email} placeholder="Email" keyboardType="email-address" autoCapitalize="none" />
-              <TextInput style={styles.input} onChangeText={setPassword} value={password} placeholder="Password" secureTextEntry={true} autoCapitalize="none" />
+    <>
+      <View style={styles.imageHeader}>
+        <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
+      </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.container}>
+          <View style={styles.header}></View>
+          <View style={styles.loginContainer}>
+            <Text style={styles.loginHeading}>Login</Text>
+            {/* Email and Password Inputs */}
+            <TextInput
+              style={styles.input}
+              onChangeText={setEmail}
+              value={email}
+              placeholder="Email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={styles.input}
+              onChangeText={setPassword}
+              value={password}
+              placeholder="Password"
+              secureTextEntry={true}
+              autoCapitalize="none"
+            />
 
-              <TouchableOpacity onPress={handleSubmit} style={styles.loginButton}>
-                <Text style={styles.loginButtonText}>Login</Text>
-              </TouchableOpacity>
+            <TouchableOpacity onPress={handleSubmit} style={styles.loginButton}>
+              <Text style={styles.loginButtonText}>Login</Text>
+            </TouchableOpacity>
 
-              {/* Register Navigation Button */}
-              <TouchableOpacity onPress={navigateToRegister} style={styles.registerButton}>
-                <Text style={styles.registerButtonText}>Don't have an account? Register</Text>
-              </TouchableOpacity>
-            </View>
+            {/* Register Navigation Button */}
+            <TouchableOpacity
+              onPress={navigateToRegister}
+              style={styles.registerButton}>
+              <Text style={styles.registerButtonText}>
+                Don't have an account? Register
+              </Text>
+            </TouchableOpacity>
           </View>
-        </TouchableWithoutFeedback>
-      </>
+        </View>
+      </TouchableWithoutFeedback>
+    </>
   );
 }
 

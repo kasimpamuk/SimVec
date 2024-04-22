@@ -13,7 +13,8 @@ search:
 
 gallery:
   images:
-    save-directory: "C:/Users/lenovo/Desktop/temp-server"
+    #save-directory: "C:/Users/lenovo/Desktop/temp-server"
+    save-directory: "Users/eliflale/Desktop/temp-server"
 
 spring:
 #  datasource:
