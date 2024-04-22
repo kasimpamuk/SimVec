@@ -219,21 +219,25 @@ def text_based_search(request):
         text_embedding = query_text_features.squeeze(0).detach().numpy().tolist()
         norm_text_embedding = text_embedding/np.linalg.norm(text_embedding)
 
+        distance_threshold = 1.505 # similarity threshold
+
         results = collection.search(
-        data=[norm_text_embedding], 
-        anns_field="embedding", 
-        # the sum of `offset` in `param` and `limit` 
-        # should be less than 16384.
-        param=search_params,
-        limit=(int) (topk),
-        expr=None,
+            data=[norm_text_embedding], 
+            anns_field="embedding", 
+            # the sum of `offset` in `param` and `limit` 
+            # should be less than 16384.
+            param=search_params,
+            limit=(int) (topk),
+            expr=None,
         )
-        result_list = results[0].ids
-        
-        for i in range(len(result_list)):
-            result_list[i] =  "/" + result_list[i][1:]
-        #print(result_list)
-        return JsonResponse({'message': 'Image processed successfully', 'results': list(result_list)})
+        # Process results: filter based on distance
+        filtered_results = []
+        for result in results[0]:
+            if (result.distance) < (distance_threshold):
+                formatted_id = "/" + result.id[1:]  
+                filtered_results.append(formatted_id)
+
+        return JsonResponse({'message': 'Image processed successfully', 'results': list(filtered_results)})
 
     except Exception as e:
         # Handle any errors that occur during the process
