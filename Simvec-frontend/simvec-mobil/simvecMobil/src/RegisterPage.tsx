@@ -74,6 +74,7 @@ function RegisterPage() {
       if (!response.ok) {
         setErrors(responseBody);
         console.error('Registration failed:', responseBody);
+        
       } else {
         console.log('Registration successful!');
         setErrors({});

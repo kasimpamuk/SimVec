@@ -31,13 +31,15 @@ function MainPage() {
   };
 
   const handleTextSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
     if (!text) {
       Alert.alert('Error', 'Please enter some text');
       return;
     }
 
     try {
+      const translatedData = await translateText(data.text);
+
       const response = await fetch(
           'http://10.0.2.2:8080/api/text-based-search',
           {
@@ -45,13 +47,12 @@ function MainPage() {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({ ...data, text: translatedData }),
           },
       );
 
       const base64Images = await response.json();
-
-       const urls = base64Images.map(base64 => `data:image/jpeg;base64,${base64}`);
+      const urls = base64Images.map(base64 => `data:image/jpeg;base64,${base64}`);
       setImageList(urls);
       console.log(imageList);
       console.error(urls);
@@ -60,7 +61,37 @@ function MainPage() {
       Alert.alert('Error', 'Error processing text');
     }
   };
+  async function translateText(text) {
+    const detectResponse = await fetch('http://localhost:5000/detect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ q: text }),
+    });
+    const detectedLang = await detectResponse.json();
+    const sourceLang = detectedLang[0].language;
 
+    if (sourceLang !== 'en') {
+      const translateResponse = await fetch('https://localhost:5000/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          q: text,
+          source: sourceLang,
+          target: 'en',
+          format: 'text'
+        }),
+      });
+      const translated = await translateResponse.json();
+      return translated.translatedText;
+    }
+    return text;
+  }
   const handleImageChange = () => {
     const options = {
       mediaType: 'photo',
