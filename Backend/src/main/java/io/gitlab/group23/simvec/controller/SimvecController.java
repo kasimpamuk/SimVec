@@ -63,6 +63,7 @@ public class SimvecController {
 
 	@PostMapping("/image-based-search/{topk}")
 	public ResponseEntity<List<byte[]>> imageBasedSearch(@RequestParam("file") MultipartFile image, @PathVariable(name = "topk") String topk) {
+		System.out.println("in image based search");
 		try {
 			return ResponseEntity.ok(vectorDatabaseService.executeImageBasedSearch(image, topk));
 		} catch (IOException e) {

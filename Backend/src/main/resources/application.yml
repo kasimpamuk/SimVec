@@ -9,7 +9,8 @@ vector-database:
 
 search:
   image:
-    save-directory: "/home/atakan/Desktop"
+    #save-directory: "/home/atakan/Desktop"
+    save-directory: "/Users/eliflale/Desktop"
 
 gallery:
   images:

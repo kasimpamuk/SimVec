@@ -12,6 +12,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 import {toByteArray as btoa} from 'base64-js';
@@ -96,23 +97,24 @@ function MainPage() {
       Alert.alert('Error', 'Please select an image to upload');
       return;
     }
-    const imageData = {
-      image: image.base64,
-      searchNumber: searchNumber,
-    };
-
+    const formData = new FormData(); // Create a FormData object
+    formData.append('file', {
+      // Append the image data
+      name: 'uploaded_image.jpg', // Filename
+      type: 'image/jpeg', // MIME type
+      uri: image.uri, // Image URI
+    });
     try {
       const response = await fetch(
         `http://10.0.2.2:8080/api/image-based-search/${searchNumber}`,
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'multipart/form-data',
           },
-          body: JSON.stringify(imageData),
+          body: formData,
         },
       );
-
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -254,20 +256,23 @@ function MainPage() {
       <View style={styles.header}>
         <Image source={logo} style={styles.logo} resizeMode="contain" />
       </View>
-      <View style={styles.header}>
-        <Button
-          title="User Page"
-          onPress={() => navigation.navigate('User')}
-          color="#ff0000"
-        />
+      {/* New view for settings and user profile buttons */}
+      <View style={styles.row}>
+        <TouchableOpacity
+          style={styles.buttonContainer}
+          onPress={() => navigation.navigate('User')}>
+          <Icon name="user" size={20} color="#ff0000" />
+          <Text style={styles.buttonText}>User Profile</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.buttonContainer}
+          onPress={() => navigation.navigate('Settings')}>
+          <Icon name="cog" size={20} color="#ff0000" />
+          <Text style={styles.buttonText}>Settings</Text>
+        </TouchableOpacity>
       </View>
-      <View style={styles.header}>
-        <Button
-          title="Settings"
-          onPress={() => navigation.navigate('Settings')}
-          color="#ff0000"
-        />
-      </View>
+
       <View style={styles.textAreaContainer}>
         <Text style={styles.label}>Enter text for search:</Text>
         <TextInput
@@ -317,6 +322,24 @@ function MainPage() {
 }
 
 const styles = StyleSheet.create({
+  buttonText: {
+    marginLeft: 10, // Space between icon and text
+    color: '#555',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Make space between buttons
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    backgroundColor: '#fff',
+  },
+  buttonContainer: {
+    flexDirection: 'row', // Horizontal alignment
+    alignItems: 'center', // Center icon and text
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+  },
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
