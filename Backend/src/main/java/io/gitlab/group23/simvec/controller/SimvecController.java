@@ -1,18 +1,13 @@
 package io.gitlab.group23.simvec.controller;
 
-import io.gitlab.group23.simvec.model.AuthRequest;
-import io.gitlab.group23.simvec.model.SimvecUser;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.*;
-import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
+import io.gitlab.group23.simvec.service.vectordb.ImagePopulationService;
+import io.gitlab.group23.simvec.service.vectordb.VectorDatabaseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -31,42 +26,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class SimvecController {
 
 	private final VectorDatabaseService vectorDatabaseService;
-	private final TranslateText translateText;
-	private final AuthenticationService authenticationService;
-	private final UserService userService;
 	private final ImagePopulationService imagePopulationService;
-	private final UserInfoService userInfoService;
-	private final AuthenticationManager authenticationManager;
-	private final JwtService jwtService;
+	private final TranslateText translateText;
 
 	@Autowired
-	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService, UserService userService, ImagePopulationService imagePopulationService, UserInfoService userInfoService, AuthenticationManager authenticationManager, JwtService jwtService) {
+	public SimvecController(VectorDatabaseService vectorDatabaseService, ImagePopulationService imagePopulationService, TranslateText translateText) {
 		this.vectorDatabaseService = vectorDatabaseService;
-        this.translateText = translateText;
-		this.authenticationService = authenticationService;
-		this.userService = userService;
 		this.imagePopulationService = imagePopulationService;
-		this.userInfoService = userInfoService;
-		this.authenticationManager = authenticationManager;
-		this.jwtService = jwtService;
+		this.translateText = translateText;
 	}
 
-	// ############## JWT ################
 
-	@GetMapping("/private-endpoint")
+	@GetMapping("/test-endpoint")
 	@PreAuthorize("hasAuthority('ROLE_USER')")
-	public String privateEndpoint() {
-		return "Welcome to Private Endpoint";
+	public ResponseEntity<String> testEndpoint() {
+		return ResponseEntity.ok("Welcome to Test Endpoint!");
 	}
 
-
-	// ############## JWT ################
-
-//	@PostMapping("/public-ends/register")
-//	public ResponseEntity<SimvecUser> registerUser(@Validated @RequestBody SimvecUser simvecUser) {
-//		//System.out.println("hello");
-//		return ResponseEntity.ok(authenticationService.registerUser(simvecUser));
-//	}
 
 	@PostMapping("/image-based-search/{topk}")
 	@PreAuthorize("hasAuthority('ROLE_USER')")
@@ -80,25 +56,21 @@ public class SimvecController {
 		}
 	}
 
+
 	@PostMapping("/text-based-search")
 	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
 		System.out.println("Text Based Search Endpoint");
-		// String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
-		// vectorDatabaseRequest.setInput(translatedText);
+		 String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
+		 vectorDatabaseRequest.setInput(translatedText);
 		List<byte[]> images = vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest);
 		return ResponseEntity.ok(images);
 	}
 
-//	@GetMapping("/verify")
-//	public String verifyUser(@RequestParam("code") String token) {
-//		return authenticationService.verifyUserEmail(token);
-//	}
 
 	@PostMapping("/transfer-images")
 	@PreAuthorize("hasAuthority('ROLE_USER')")
-	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images, @RequestParam String username) {
-//		SimvecUser user = userService.getUserByUsername(username);
+	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images) {
 		imagePopulationService.saveImages(images, "alper");
 		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Images are saved successfully");
 	}

@@ -1,4 +1,4 @@
-package io.gitlab.group23.simvec.service;
+package io.gitlab.group23.simvec.service.vectordb;
 
 import io.gitlab.group23.simvec.util.ImageUtil;
 import org.springframework.beans.factory.annotation.Value;

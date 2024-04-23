@@ -11,8 +11,6 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<SimvecUser, Integer> {
 //	SimvecUser findSimvecUserByEmailVerificationToken(String emailVerificationToken);
 
-	Optional<SimvecUser> findByName(String username);
-
-	List<SimvecUser> findAll();
+	Optional<SimvecUser> findByUsername(String username);
 
 }

@@ -1,4 +1,4 @@
-package io.gitlab.group23.simvec.service;
+package io.gitlab.group23.simvec.service.authentication.jwt;
 
 import io.gitlab.group23.simvec.model.SimvecUser;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,15 +12,15 @@ import java.util.stream.Collectors;
 
 public class UserInfoDetails implements UserDetails {
 
-	private String name;
-	private String password;
-	private List<GrantedAuthority> authorities;
+	private final String username;
+	private final String password;
+	private final List<GrantedAuthority> authorities;
 
 	// HERE IS THE SIMVEC USER ATTRIBUTES
-	public UserInfoDetails(SimvecUser userInfo) {
-		name = userInfo.getName();
-		password = userInfo.getPassword();
-		authorities = Arrays.stream(userInfo.getRoles().split(","))
+	public UserInfoDetails(SimvecUser simvecUser) {
+		username = simvecUser.getUsername();
+		password = simvecUser.getPassword();
+		authorities = Arrays.stream(simvecUser.getRoles().split(","))
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList());
 	}
@@ -37,7 +37,7 @@ public class UserInfoDetails implements UserDetails {
 
 	@Override
 	public String getUsername() {
-		return name;
+		return username;
 	}
 
 	@Override

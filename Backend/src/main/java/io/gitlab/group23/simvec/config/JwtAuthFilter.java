@@ -1,7 +1,7 @@
 package io.gitlab.group23.simvec.config;
 
-import io.gitlab.group23.simvec.service.JwtService;
-import io.gitlab.group23.simvec.service.UserInfoService;
+import io.gitlab.group23.simvec.service.authentication.jwt.JwtService;
+import io.gitlab.group23.simvec.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +23,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 	private JwtService jwtService;
 
 	@Autowired
-	private UserInfoService userDetailsService;
+	private UserService userDetailsService;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

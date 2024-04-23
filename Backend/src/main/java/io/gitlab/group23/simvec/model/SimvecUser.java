@@ -17,14 +17,14 @@ public class SimvecUser {
 	private int id;
 
 	@Column(unique = true)
-	private String name;
+	private String username;
+
 	@Column(unique = true)
 	private String email;
+
 	@ValidPassword
 	private String password;
-	private String roles;
 
-//	private boolean isEmailVerified;
-//	private String emailVerificationToken;
+	private String roles;
 
 }

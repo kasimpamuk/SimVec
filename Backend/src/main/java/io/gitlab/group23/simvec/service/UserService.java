@@ -2,42 +2,38 @@ package io.gitlab.group23.simvec.service;
 
 import io.gitlab.group23.simvec.model.SimvecUser;
 import io.gitlab.group23.simvec.repository.UserRepository;
+import io.gitlab.group23.simvec.service.authentication.jwt.UserInfoDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
 @Slf4j
-public class UserService {
-
-	private final UserRepository userRepository;
+public class UserService implements UserDetailsService {
 
 	@Autowired
-	public UserService(UserRepository userRepository) {
-		this.userRepository = userRepository;
+	private UserRepository userRepository;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		Optional<SimvecUser> userDetail = userRepository.findByUsername(username);
+		return userDetail.map(UserInfoDetails::new)
+				.orElseThrow(() -> new UsernameNotFoundException("User not found " + username));
 	}
 
-	public SimvecUser saveUser(SimvecUser simvecUser) {
-		return userRepository.save(simvecUser);
-	}
-
-//	public SimvecUser getUserByVerificationToken(String verificationToken) {
-//		return userRepository.findSimvecUserByEmailVerificationToken(verificationToken);
-//	}
-
-	public SimvecUser getUserByUsername(String username) {
-		Optional<SimvecUser> optionalSimvecUser = userRepository.findByName(username);
-		if (optionalSimvecUser.isEmpty()) {
-			throw new RuntimeException("No user with the given username exists");
-		}
-		return optionalSimvecUser.get();
-	}
-
-	public List<SimvecUser> getAllUsers() {
-		return userRepository.findAll();
+	public String addUser(SimvecUser userInfo) {
+		userInfo.setPassword(passwordEncoder.encode(userInfo.getPassword()));
+		userRepository.save(userInfo);
+		return "User Added Successfully";
 	}
 
 }

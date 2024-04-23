@@ -1,6 +1,6 @@
 package io.gitlab.group23.simvec.config;
 
-import io.gitlab.group23.simvec.service.UserInfoService;
+import io.gitlab.group23.simvec.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +34,7 @@ public class SecurityConfig {
 	// User Creation
 	@Bean
 	public UserDetailsService userDetailsService() {
-		return new UserInfoService();
+		return new UserService();
 	}
 
 	// Configuring HttpSecurity
