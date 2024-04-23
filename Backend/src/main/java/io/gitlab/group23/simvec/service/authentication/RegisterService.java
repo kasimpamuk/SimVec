@@ -21,16 +21,16 @@ public class RegisterService {
 		this.emailService = emailService;
 	}
 
-	public SimvecUser registerUser(SimvecUser simvecUser) {
-		simvecUser.setEmailVerificationToken(generateEmailVerificationToken());
-		SimvecUser savedUser = userService.saveUser(simvecUser);
-		emailService.sendVerificationEmail(simvecUser, HOST_URL + API);
-		return savedUser;
-	}
+//	public SimvecUser registerUser(SimvecUser simvecUser) {
+//		simvecUser.setEmailVerificationToken(generateEmailVerificationToken());
+//		SimvecUser savedUser = userService.saveUser(simvecUser);
+//		emailService.sendVerificationEmail(simvecUser, HOST_URL + API);
+//		return savedUser;
+//	}
 
-	public String verifyUserEmail(String token) {
-		return emailService.verifyUserEmail(token);
-	}
+//	public String verifyUserEmail(String token) {
+//		return emailService.verifyUserEmail(token);
+//	}
 
 	private static String generateEmailVerificationToken() {
 		return UUID.randomUUID().toString();

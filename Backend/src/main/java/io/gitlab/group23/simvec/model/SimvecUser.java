@@ -14,16 +14,17 @@ public class SimvecUser {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private int id;
 
 	@Column(unique = true)
-	private String userName;
+	private String name;
 	@Column(unique = true)
 	private String email;
 	@ValidPassword
 	private String password;
+	private String roles;
 
-	private boolean isEmailVerified;
-	private String emailVerificationToken;
+//	private boolean isEmailVerified;
+//	private String emailVerificationToken;
 
 }

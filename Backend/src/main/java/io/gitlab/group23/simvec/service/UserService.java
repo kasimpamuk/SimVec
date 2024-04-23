@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,16 +24,20 @@ public class UserService {
 		return userRepository.save(simvecUser);
 	}
 
-	public SimvecUser getUserByVerificationToken(String verificationToken) {
-		return userRepository.findSimvecUserByEmailVerificationToken(verificationToken);
-	}
+//	public SimvecUser getUserByVerificationToken(String verificationToken) {
+//		return userRepository.findSimvecUserByEmailVerificationToken(verificationToken);
+//	}
 
 	public SimvecUser getUserByUsername(String username) {
-		Optional<SimvecUser> optionalSimvecUser = userRepository.getSimvecUserByUserName(username);
+		Optional<SimvecUser> optionalSimvecUser = userRepository.findByName(username);
 		if (optionalSimvecUser.isEmpty()) {
 			throw new RuntimeException("No user with the given username exists");
 		}
 		return optionalSimvecUser.get();
+	}
+
+	public List<SimvecUser> getAllUsers() {
+		return userRepository.findAll();
 	}
 
 }

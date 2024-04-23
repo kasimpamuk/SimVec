@@ -14,13 +14,13 @@ public class AuthenticationService {
 		this.registerService = registerService;
 	}
 
-	public SimvecUser registerUser(SimvecUser simvecUser) {
-		return registerService.registerUser(simvecUser);
-	}
+//	public SimvecUser registerUser(SimvecUser simvecUser) {
+//		return registerService.registerUser(simvecUser);
+//	}
 
-	public String verifyUserEmail(String token) {
-		return registerService.verifyUserEmail(token);
-	}
+//	public String verifyUserEmail(String token) {
+//		return registerService.verifyUserEmail(token);
+//	}
 
 
 }

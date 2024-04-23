@@ -39,3 +39,5 @@ spring:
           auth: true
           starttls:
             enable: true
+  main:
+    allow-circular-references: true
