@@ -13,7 +13,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -37,62 +36,29 @@ public class SimvecController {
 	private final UserService userService;
 	private final ImagePopulationService imagePopulationService;
 	private final UserInfoService userInfoService;
+	private final AuthenticationManager authenticationManager;
+	private final JwtService jwtService;
 
 	@Autowired
-	private AuthenticationManager authenticationManager;
-	@Autowired
-	private JwtService jwtService;
-
-	@Autowired
-	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService, UserService userService, ImagePopulationService imagePopulationService, UserInfoService userInfoService) {
+	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService, UserService userService, ImagePopulationService imagePopulationService, UserInfoService userInfoService, AuthenticationManager authenticationManager, JwtService jwtService) {
 		this.vectorDatabaseService = vectorDatabaseService;
         this.translateText = translateText;
 		this.authenticationService = authenticationService;
 		this.userService = userService;
 		this.imagePopulationService = imagePopulationService;
 		this.userInfoService = userInfoService;
+		this.authenticationManager = authenticationManager;
+		this.jwtService = jwtService;
 	}
 
 	// ############## JWT ################
-	@GetMapping("public-ends/public-endpoint")
-	public String publicEndpoint() {
-		return "Welcome to public endpoint!";
-	}
 
-	@GetMapping("private-ends/private-endpoint")
-	public String privateEndpoint() {
-		return "Welcome to private endpoint!";
-	}
-
-	@PostMapping("public-ends/addNewUser")
-	public String addNewUser(@RequestBody SimvecUser userInfo) {
-		return userInfoService.addUser(userInfo);
-	}
-
-	@GetMapping("/private-ends/userProfile")
+	@GetMapping("/private-endpoint")
 	@PreAuthorize("hasAuthority('ROLE_USER')")
-	public String userProfile() {
-		return "Welcome to User Profile";
+	public String privateEndpoint() {
+		return "Welcome to Private Endpoint";
 	}
 
-	@PostMapping("/public-ends/generateToken")
-	public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
-		System.out.println(authRequest.toString());
-		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
-		System.out.println("Hello");
-		if (authentication.isAuthenticated()) {
-			System.out.println("in if");
-			return jwtService.generateToken(authRequest.getUsername());
-		} else {
-			System.out.println("in else");
-			throw new UsernameNotFoundException("invalid user request !");
-		}
-	}
-
-	@GetMapping("/public-ends/db")
-	public List<SimvecUser> getDb() {
-		return userService.getAllUsers();
-	}
 
 	// ############## JWT ################
 
@@ -103,6 +69,7 @@ public class SimvecController {
 //	}
 
 	@PostMapping("/image-based-search/{topk}")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<List<byte[]>> imageBasedSearch(@RequestParam("file") MultipartFile image, @PathVariable(name = "topk") String topk) {
 		try {
 			return ResponseEntity.ok(vectorDatabaseService.executeImageBasedSearch(image, topk));
@@ -114,6 +81,7 @@ public class SimvecController {
 	}
 
 	@PostMapping("/text-based-search")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
 		System.out.println("Text Based Search Endpoint");
 		// String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
@@ -128,6 +96,7 @@ public class SimvecController {
 //	}
 
 	@PostMapping("/transfer-images")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images, @RequestParam String username) {
 //		SimvecUser user = userService.getUserByUsername(username);
 		imagePopulationService.saveImages(images, "alper");

@@ -18,15 +18,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.Arrays;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
+	private static final String PUBLIC_ENDPOINTS = "/auth/**";
+	private final JwtAuthFilter authFilter;
+
 	@Autowired
-	private JwtAuthFilter authFilter;
+	public SecurityConfig(JwtAuthFilter authFilter) {
+		this.authFilter = authFilter;
+	}
 
 	// User Creation
 	@Bean
@@ -38,8 +41,9 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.csrf(csrf -> csrf.disable())
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/public-ends/**").permitAll())
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/private-ends/**").authenticated())
+				.authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_ENDPOINTS).permitAll())
+//				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/private-ends/**").authenticated())
+				.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
 				.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authenticationProvider(authenticationProvider())
 				.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
