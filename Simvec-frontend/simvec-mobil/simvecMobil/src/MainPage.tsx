@@ -161,7 +161,7 @@ function MainPage() {
     console.log('Sending request to synchronize images');
 
     try {
-      // First, send the synchronization request to get the backend image files
+      // Step 1: Get backend image files
       const formData1 = new FormData();
       formData1.append('username', user_info.username);
 
@@ -174,35 +174,56 @@ function MainPage() {
       );
 
       if (!response1.ok) {
-        console.log(await response1.json());
-        throw new Error('Network response was not ok');
+        console.error('Failed to synchronize:', await response1.json());
+        return;
       }
 
       const backendImageFiles = await response1.json(); // Image names from backend
       const galleryImageFiles = await getGalleryImageNames(); // Image names from gallery
 
-      // Find images to delete and images to add
-      const imagesToDelete = galleryImageFiles.filter(
-        img => !backendImageFiles.includes(img),
-      );
-
-      const imagesToAdd = backendImageFiles.filter(
+      // Step 2: Find images to delete from backend
+      const imagesToDelete = backendImageFiles.filter(
         img => !galleryImageFiles.includes(img),
       );
 
-      console.log('Images to delete:', imagesToDelete);
-      console.log('Images to add:', imagesToAdd);
+      // Step 3: Find images to add to backend
+      const imagesToAdd = galleryImageFiles.filter(
+        img => !backendImageFiles.includes(img),
+      );
 
-      // Build form-data for the second request
+      // Create form-data for the second request
       const formData2 = new FormData();
 
       formData2.append('username', user_info.username);
-      // Append images to delete as a serialized string
+
+      // Step 4: Add images to delete as serialized JSON
       formData2.append('images_to_delete', JSON.stringify(imagesToDelete));
 
-      // Append images to add as a serialized string
-      formData2.append('images_to_add', JSON.stringify(imagesToAdd));
-      console.log(imagesToAdd);
+      // Step 5: Add actual image files for images to be added
+      const imageFilesToUpload = []; // This array will hold image files to be uploaded
+      for (const imageName of imagesToAdd) {
+        // Assuming you have a way to retrieve the actual image file by name
+        const imageFile = await RNFS.readFile(
+          RNFS.PicturesDirectoryPath + '/' + imageName,
+          'base64',
+        ); // Read image as base64
+        imageFilesToUpload.push({
+          uri: 'data:image/jpeg;base64,' + imageFile, // Data URI format
+          name: imageName, // Filename
+          type: 'image/jpeg', // MIME type
+        });
+      }
+
+      console.log('imageFilesToUpload: ', imageFilesToUpload);
+      console.log('imageFilesTodelete: ', imagesToDelete);
+
+      imageFilesToUpload.forEach(image => {
+        formData2.append('images_to_add', {
+          uri: image.uri,
+          name: image.name,
+          type: 'image/jpeg',
+        });
+      });
 
       // Send the second request with form-data
       const response2 = await fetch(

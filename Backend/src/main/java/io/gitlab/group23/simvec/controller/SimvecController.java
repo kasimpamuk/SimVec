@@ -112,7 +112,7 @@ public class SimvecController {
 	public ResponseEntity<?> addDeleteImages(
 			@RequestParam("username") String username,
 			@RequestPart("images_to_delete") String imagesToDelete,
-			@RequestPart("images_to_add") List<MultipartFile> imagesToAdd
+			@RequestPart(value = "images_to_add", required = false) List<MultipartFile> imagesToAdd // Make optional
 	) {
 		ObjectMapper objectMapper = new ObjectMapper();
 
@@ -122,6 +122,7 @@ public class SimvecController {
 
 			imageSynchronizationService.deleteImages(username, imagesToDeleteList);
 
+			// Only attempt to save new images if there are any to add
 			if (imagesToAdd != null && !imagesToAdd.isEmpty()) {
 				imageSynchronizationService.saveImages(username, imagesToAdd); // Save new images
 			}
@@ -129,10 +130,8 @@ public class SimvecController {
 			return ResponseEntity.ok("Synchronization completed");
 
 		} catch (JsonProcessingException e) {
-			// Handle JSON processing errors
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid JSON format");
 		} catch (Exception e) {
-			// Handle other exceptions
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
 		}
 	}
