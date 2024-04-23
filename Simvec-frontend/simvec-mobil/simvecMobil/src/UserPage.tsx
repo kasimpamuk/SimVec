@@ -1,7 +1,9 @@
 import React, {useState} from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, Button, StyleSheet } from 'react-native';
 import logo from './assets/user-profile-icon.jpg';
+import { useTranslation } from 'react-i18next';
 function UserPage({ navigation }) {
+  const { t, i18n } = useTranslation();
    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
     // Function to toggle password visibility
@@ -30,28 +32,28 @@ function UserPage({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.profileSection}>
-        <Image source={logo} style={styles.profilePic} />
-        <View style={styles.userInfo}>
-          <Text style={styles.name}>{userInfo.name}</Text>
-          <Text style={styles.email}>{userInfo.email}</Text>
-          <Text style={styles.password}>Password: {isPasswordVisible ? 'password123' : '••••••••'}</Text>
-          <TouchableOpacity style={styles.showPassword} onPress={togglePasswordVisibility}>
-             <Text style={styles.showPasswordText}>Show Password</Text>
-          </TouchableOpacity>
-          <Text style={styles.photoCount}>Photo Count: {userInfo.photoCount}</Text>
+      <View style={styles.container}>
+        <View style={styles.profileSection}>
+          <Image source={logo} style={styles.profilePic} />
+          <View style={styles.userInfo}>
+            <Text style={styles.name}>{userInfo.name}</Text>  // Assuming user's name doesn't need translation
+            <Text style={styles.email}>{userInfo.email}</Text>  // Assuming email doesn't need translation
+            <Text style={styles.password}>{t('Password')}: {isPasswordVisible ? 'password123' : '••••••••'}</Text>
+            <TouchableOpacity style={styles.showPassword} onPress={togglePasswordVisibility}>
+              <Text style={styles.showPasswordText}>{t('Show Password')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.photoCount}>{t('Photo Count')}: {userInfo.photoCount}</Text>
+          </View>
+        </View>
+        <View style={styles.buttonGroup}>
+          <View style={styles.buttonContainer}>
+            <Button title={t('Edit Profile')} onPress={handleEditProfile} color="#ff6347" />
+          </View>
+          <View style={styles.buttonContainer}>
+            <Button title={t('Log Out')} onPress={handleLogout} color="#ff6347" />
+          </View>
         </View>
       </View>
-      <View style={styles.buttonGroup}>
-        <View style={styles.buttonContainer}>
-            <Button title="Edit Profile" onPress={handleEditProfile} color="#ff6347" />
-        </View>
-        <View style={styles.buttonContainer}>
-            <Button title="Log Out" onPress={handleLogout} color="#ff6347" />
-        </View>
-      </View>
-    </View>
   );
 }
 
