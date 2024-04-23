@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -17,6 +18,7 @@ import { toByteArray as btoa } from 'base64-js';
 import logo from './assets/simvec.png';
 
 function MainPage() {
+  const { t, i18n } = useTranslation();
   const [text, setText] = useState('');
   const [searchNumber, setSearchNumber] = useState(5);
   const [imageList, setImageList] = useState([]);
@@ -116,40 +118,40 @@ function MainPage() {
           <Image source={logo} style={styles.logo} resizeMode="contain" />
         </View>
         <View style={styles.header}>
-            <Button title="User Page"
-                onPress={() => navigation.navigate('User')}
-                color="#ff0000"
-            />
+          <Button title={t('User Page')}
+                  onPress={() => navigation.navigate('User')}
+                  color="#ff0000"
+          />
         </View>
         <View style={styles.header}>
-                    <Button title="Settings"
-                        onPress={() => navigation.navigate('Settings')}
-                        color="#ff0000"
-                    />
-         </View>
+          <Button title={t('Settings')}
+                  onPress={() => navigation.navigate('Settings')}
+                  color="#ff0000"
+          />
+        </View>
         <View style={styles.textAreaContainer}>
-          <Text style={styles.label}>Enter text for search:</Text>
+          <Text style={styles.label}>{t('Enter text for search:')}</Text>
           <TextInput
               style={styles.textArea}
               value={text}
               onChangeText={setText}
-              placeholder="Type here..."
+              placeholder={t('Type here...')}
               multiline
           />
         </View>
-        <Button title="Submit Text" onPress={handleTextSubmit} color="#32cd32" />
+        <Button title={t('Submit Text')} onPress={handleTextSubmit} color="#32cd32" />
         <TouchableOpacity style={styles.imagePicker} onPress={handleImageChange}>
           {image ? (
               <Image source={{ uri: image.uri }} style={styles.imagePreview} />
           ) : (
-              <Text style={styles.imagePickerText}>Tap to select an image</Text>
+              <Text style={styles.imagePickerText}>{t('Tap to select an image')}</Text>
           )}
         </TouchableOpacity>
-        <Button title="Upload Image" onPress={handleImageSubmit} color="#32cd32" />
+        <Button title={t('Upload Image')} onPress={handleImageSubmit} color="#32cd32" />
 
         {imageList.length > 0 && (
             <View style={styles.resultsContainer}>
-              <Text style={styles.subheading}>Returned Images:</Text>
+              <Text style={styles.subheading}>{t('Returned Images:')}</Text>
               {imageList.map((imgSrc, index) => (
                   <Image
                       key={index}
@@ -160,12 +162,12 @@ function MainPage() {
             </View>
         )}
 
-        <View style ={styles.header}>
-            <Button
-                title="Synchronize"
-                onPress={() => Alert.alert('Synchronization', 'Synchronization in progress...')}
-                color="#32cd32"
-            />
+        <View style={styles.header}>
+          <Button
+              title={t('Synchronize')}
+              onPress={() => Alert.alert(t('Synchronization'), t('Synchronization in progress...'))}
+              color="#32cd32"
+          />
         </View>
       </ScrollView>
   );

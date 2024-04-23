@@ -6,10 +6,11 @@ import MainPage from './src/MainPage'; // Make sure MainPage is adapted for Reac
 import RegisterPage from './src/RegisterPage'; // Make sure RegisterPage is adapted for React Native
 import UserPage from './src/UserPage';
 import SettingsPage from './src/SettingsPage';
-
+import   './src/i18n.tsx';
+import { useTranslation } from 'react-i18next';
 
 const Stack = createNativeStackNavigator();
-
+const {t, i18n} = useTranslation();
 function App() {
   return (
     <NavigationContainer>
@@ -17,7 +18,7 @@ function App() {
         <Stack.Screen
           name="Login"
           component={LoginPage}
-          options={{headerShown: false}}rr
+          options={{headerShown: false}}
         />
         <Stack.Screen
           name="Register"

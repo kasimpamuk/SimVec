@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -18,7 +19,7 @@ function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState('');
-
+  const { t, i18n } = useTranslation();
   // Get the navigation prop
   const navigation = useNavigation();
 
@@ -55,53 +56,53 @@ function RegisterPage() {
   };
 
   return (
-    <>
-      <View style={styles.imageHeader}>
-        <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
-      </View>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.container}>
-          <View style={styles.header}></View>
-          <View style={styles.registerContainer}>
-            <Text style={styles.registerHeading}>Register</Text>
-
-            <TextInput
-              style={styles.input}
-              onChangeText={setName}
-              value={name}
-              placeholder="Name"
-              autoCapitalize="none"
-            />
-
-            <TextInput
-              style={styles.input}
-              onChangeText={setEmail}
-              value={email}
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-
-            <TextInput
-              style={styles.input}
-              onChangeText={setPassword}
-              value={password}
-              placeholder="Password"
-              secureTextEntry={true}
-              autoCapitalize="none"
-            />
-            {errors.password && (
-              <Text style={styles.error}>{errors.password}</Text>
-            )}
-            <Button
-              onPress={handleSubmit}
-              title="Register"
-              color="#841584" // Example color
-            />
-          </View>
+      <>
+        <View style={styles.imageHeader}>
+          <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
         </View>
-      </TouchableWithoutFeedback>
-    </>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.container}>
+            <View style={styles.header}></View>
+            <View style={styles.registerContainer}>
+              <Text style={styles.registerHeading}>{t('Register')}</Text>
+
+              <TextInput
+                  style={styles.input}
+                  onChangeText={setName}
+                  value={name}
+                  placeholder={t('Name')}
+                  autoCapitalize="none"
+              />
+
+              <TextInput
+                  style={styles.input}
+                  onChangeText={setEmail}
+                  value={email}
+                  placeholder={t('Email')}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+              />
+
+              <TextInput
+                  style={styles.input}
+                  onChangeText={setPassword}
+                  value={password}
+                  placeholder={t('Password')}
+                  secureTextEntry={true}
+                  autoCapitalize="none"
+              />
+              {errors.password && (
+                  <Text style={styles.error}>{errors.password}</Text>
+              )}
+              <Button
+                  onPress={handleSubmit}
+                  title={t('Register')}
+                  color="#841584" // Example color
+              />
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </>
   );
 }
 

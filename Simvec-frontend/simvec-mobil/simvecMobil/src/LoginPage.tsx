@@ -1,5 +1,7 @@
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+
 import {
   View,
   Text,
@@ -15,6 +17,7 @@ import {
 import logo from './assets/simvec.png';
 
 function LoginPage() {
+  const { t, i18n } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState('');
@@ -65,23 +68,36 @@ function LoginPage() {
           <View style={styles.container}>
             <View style={styles.header}></View>
             <View style={styles.loginContainer}>
-              <Text style={styles.loginHeading}>Login</Text>
+              <Text style={styles.loginHeading}>{t('Login')}</Text>
               {/* Email and Password Inputs */}
-              <TextInput style={styles.input} onChangeText={setEmail} value={email} placeholder="Email" keyboardType="email-address" autoCapitalize="none" />
-              <TextInput style={styles.input} onChangeText={setPassword} value={password} placeholder="Password" secureTextEntry={true} autoCapitalize="none" />
+              <TextInput
+                  style={styles.input}
+                  onChangeText={setEmail}
+                  value={email}
+                  placeholder={t('Email')}
+                  keyboardType="email-address"
+                  autoCapitalize="none" />
+              <TextInput
+                  style={styles.input}
+                  onChangeText={setPassword}
+                  value={password}
+                  placeholder={t('Password')}
+                  secureTextEntry={true}
+                  autoCapitalize="none" />
 
               <TouchableOpacity onPress={handleSubmit} style={styles.loginButton}>
-                <Text style={styles.loginButtonText}>Login</Text>
+                <Text style={styles.loginButtonText}>{t('Login')}</Text>
               </TouchableOpacity>
 
               {/* Register Navigation Button */}
               <TouchableOpacity onPress={navigateToRegister} style={styles.registerButton}>
-                <Text style={styles.registerButtonText}>Don't have an account? Register</Text>
+                <Text style={styles.registerButtonText}>{t("Don't have an account? Register")}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </TouchableWithoutFeedback>
       </>
+
   );
 }
 

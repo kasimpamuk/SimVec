@@ -10,9 +10,12 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-picker/picker": "^2.7.5",
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
+    "i18next": "^23.11.2",
     "react": "18.2.0",
+    "react-i18next": "^14.1.1",
     "react-native": "0.73.6",
     "react-native-image-picker": "^7.1.2",
     "react-native-safe-area-context": "^4.9.0",
