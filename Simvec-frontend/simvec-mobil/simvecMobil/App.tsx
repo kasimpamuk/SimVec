@@ -10,7 +10,6 @@ import   './src/i18n.tsx';
 import { useTranslation } from 'react-i18next';
 
 const Stack = createNativeStackNavigator();
-const {t, i18n} = useTranslation();
 function App() {
   return (
     <NavigationContainer>
