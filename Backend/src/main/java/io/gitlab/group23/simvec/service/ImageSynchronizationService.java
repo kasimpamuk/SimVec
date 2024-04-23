@@ -2,6 +2,9 @@ package io.gitlab.group23.simvec.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +31,44 @@ public class ImageSynchronizationService {
 
         } catch (Exception e) {
             throw new RuntimeException("Error retrieving image files for user: " + username, e);
+        }
+    }
+
+    public void deleteImages(String username, List<String> imageNames) {
+        Path userFolder = Paths.get(SAVE_DIRECTORY, username);
+
+        for (String imageName : imageNames) {
+            try {
+                Path imagePath = userFolder.resolve(imageName);
+                if (Files.exists(imagePath)) {
+                    Files.delete(imagePath);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Error deleting image: " + imageName, e);
+            }
+        }
+    }
+
+    // New method to save uploaded images
+    public void saveImages(String username, List<MultipartFile> images) {
+        Path userFolder = Paths.get(SAVE_DIRECTORY, username);
+
+        if (!Files.exists(userFolder)) {
+            try {
+                Files.createDirectories(userFolder);
+            } catch (IOException e) {
+                throw new RuntimeException("Error creating directory for user: " + username, e);
+            }
+        }
+
+        for (MultipartFile image : images) {
+            Path targetPath = userFolder.resolve(image.getOriginalFilename());
+
+            try {
+                image.transferTo(targetPath.toFile());
+            } catch (IOException e) {
+                throw new RuntimeException("Error saving image: " + image.getOriginalFilename(), e);
+            }
         }
     }
 }

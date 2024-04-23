@@ -134,6 +134,8 @@ function MainPage() {
       RNFS.DocumentDirectoryPath,
       RNFS.PicturesDirectoryPath,
     ];
+    const picturesPath = RNFS.PicturesDirectoryPath;
+    console.log('picturesPath', picturesPath);
 
     let imageNames: any[] = [];
 
@@ -141,7 +143,7 @@ function MainPage() {
       console.log(dir);
       try {
         const files = await RNFS.readDir(dir);
-        console.log(files);
+        console.log('files: ', files);
         const imageFiles = files.filter(file =>
           ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
         );
@@ -157,41 +159,69 @@ function MainPage() {
 
   const synchronizationHandler = async () => {
     console.log('Sending request to synchronize images');
-    try {
-      const formData = new FormData();
-      formData.append('username', user_info.username);
 
-      const response = await fetch(
+    try {
+      // First, send the synchronization request to get the backend image files
+      const formData1 = new FormData();
+      formData1.append('username', user_info.username);
+
+      const response1 = await fetch(
         'http://10.0.2.2:8080/api/synchronize-images',
         {
           method: 'POST',
-          body: formData,
+          body: formData1,
         },
       );
 
-      if (!response.ok) {
-        console.log(await response.json());
+      if (!response1.ok) {
+        console.log(await response1.json());
         throw new Error('Network response was not ok');
       }
 
-      const backendImageFiles = await response.json(); // Image names from backend
+      const backendImageFiles = await response1.json(); // Image names from backend
       const galleryImageFiles = await getGalleryImageNames(); // Image names from gallery
 
-      // Find unique images in backend response
-      const uniqueBackendImages = backendImageFiles.filter(
-        (img: any) => !galleryImageFiles.includes(img),
-      );
-
-      console.log('Backend unique images:', uniqueBackendImages);
-
-      // Find unique images in gallery
-      const uniqueGalleryImages = galleryImageFiles.filter(
+      // Find images to delete and images to add
+      const imagesToDelete = galleryImageFiles.filter(
         img => !backendImageFiles.includes(img),
       );
 
-      console.log('Gallery unique images:', uniqueGalleryImages);
+      const imagesToAdd = backendImageFiles.filter(
+        img => !galleryImageFiles.includes(img),
+      );
 
-      setImageFilesName(backendImageFiles); // Set backend images in state
+      console.log('Images to delete:', imagesToDelete);
+      console.log('Images to add:', imagesToAdd);
+
+      // Build form-data for the second request
+      const formData2 = new FormData();
+
+      formData2.append('username', user_info.username);
+      // Append images to delete as a serialized string
+      formData2.append('images_to_delete', JSON.stringify(imagesToDelete));
+
+      // Append images to add as a serialized string
+      formData2.append('images_to_add', JSON.stringify(imagesToAdd));
+      console.log(imagesToAdd);
+
+      // Send the second request with form-data
+      const response2 = await fetch(
+        'http://10.0.2.2:8080/api/add-delete-images',
+        {
+          method: 'POST',
+          body: formData2,
+        },
+      );
+
+      if (!response2.ok) {
+        console.error(
+          'Synchronization request failed:',
+          await response2.json(),
+        );
+        throw new Error('Network response was not ok');
+      }
+
+      console.log('Synchronization completed successfully');
     } catch (error) {
       console.error('Error during synchronization:', error);
       Alert.alert('Error', 'Failed to synchronize images');

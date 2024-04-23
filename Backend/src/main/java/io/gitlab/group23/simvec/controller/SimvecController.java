@@ -1,5 +1,7 @@
 package io.gitlab.group23.simvec.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gitlab.group23.simvec.model.SimvecUser;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.ImagePopulationService;
@@ -13,6 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
+import java.util.Map;
+import com.fasterxml.jackson.core.type.TypeReference; // Import the correct class
+import com.fasterxml.jackson.databind.ObjectMapper; // Import ObjectMapper for JSON operations
 
 import java.awt.*;
 import java.io.IOException;
@@ -98,6 +104,36 @@ public class SimvecController {
 
 		} catch (RuntimeException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	// New endpoint to handle image synchronization
+	@PostMapping("/add-delete-images")
+	public ResponseEntity<?> addDeleteImages(
+			@RequestParam("username") String username,
+			@RequestPart("images_to_delete") String imagesToDelete,
+			@RequestPart("images_to_add") List<MultipartFile> imagesToAdd
+	) {
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		try {
+			// Deserialize JSON into a list of strings
+			List<String> imagesToDeleteList = objectMapper.readValue(imagesToDelete, new TypeReference<List<String>>() {});
+
+			imageSynchronizationService.deleteImages(username, imagesToDeleteList);
+
+			if (imagesToAdd != null && !imagesToAdd.isEmpty()) {
+				imageSynchronizationService.saveImages(username, imagesToAdd); // Save new images
+			}
+
+			return ResponseEntity.ok("Synchronization completed");
+
+		} catch (JsonProcessingException e) {
+			// Handle JSON processing errors
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid JSON format");
+		} catch (Exception e) {
+			// Handle other exceptions
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
 		}
 	}
 
