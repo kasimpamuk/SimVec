@@ -30,10 +30,22 @@ public class UserService implements UserDetailsService {
 				.orElseThrow(() -> new UsernameNotFoundException("User not found " + username));
 	}
 
+	public SimvecUser getUserByUsername(String username) {
+		Optional<SimvecUser> simvecUser = userRepository.findByUsername(username);
+		if (simvecUser.isEmpty()) {
+			throw new RuntimeException("No user exists with the given username");
+		}
+		return simvecUser.get();
+	}
+
 	public String addUser(SimvecUser userInfo) {
 		userInfo.setPassword(passwordEncoder.encode(userInfo.getPassword()));
 		userRepository.save(userInfo);
 		return "User Added Successfully";
+	}
+
+	public void updateUser(SimvecUser simvecUser) {
+		userRepository.save(simvecUser);
 	}
 
 }

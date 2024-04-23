@@ -1,7 +1,10 @@
 package io.gitlab.group23.simvec.controller;
 
+import io.gitlab.group23.simvec.model.SimvecUser;
+import io.gitlab.group23.simvec.model.UserProfileInfo;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
 import io.gitlab.group23.simvec.service.*;
+import io.gitlab.group23.simvec.service.authentication.jwt.AuthenticationService;
 import io.gitlab.group23.simvec.service.vectordb.ImagePopulationService;
 import io.gitlab.group23.simvec.service.vectordb.VectorDatabaseService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,12 +31,19 @@ public class SimvecController {
 	private final VectorDatabaseService vectorDatabaseService;
 	private final ImagePopulationService imagePopulationService;
 	private final TranslateText translateText;
+	private final AuthenticationService authenticationService;
+
 
 	@Autowired
-	public SimvecController(VectorDatabaseService vectorDatabaseService, ImagePopulationService imagePopulationService, TranslateText translateText) {
+	public SimvecController(
+			VectorDatabaseService vectorDatabaseService,
+			ImagePopulationService imagePopulationService,
+			TranslateText translateText,
+			AuthenticationService authenticationService) {
 		this.vectorDatabaseService = vectorDatabaseService;
 		this.imagePopulationService = imagePopulationService;
 		this.translateText = translateText;
+		this.authenticationService = authenticationService;
 	}
 
 
@@ -71,9 +81,21 @@ public class SimvecController {
 	@PostMapping("/transfer-images")
 	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images) {
-		imagePopulationService.saveImages(images, "alper");
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Images are saved successfully");
+		if (imagePopulationService.saveImages(images)) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Images are saved successfully");
+		}
+		return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("Some images could not be saved!");
 	}
 
+	@GetMapping("/get-user-info")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
+	public ResponseEntity<UserProfileInfo> getUserInfo() {
+		SimvecUser simvecUser = authenticationService.getCurrentUserByToken();
+		return ResponseEntity.ok(new UserProfileInfo(
+				simvecUser.getUsername(),
+				simvecUser.getEmail(),
+				simvecUser.getNumberOfPhotos()
+		));
+	}
 
 }

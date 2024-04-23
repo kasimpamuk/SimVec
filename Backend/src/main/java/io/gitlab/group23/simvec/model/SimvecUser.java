@@ -27,4 +27,6 @@ public class SimvecUser {
 
 	private String roles;
 
+	private int numberOfPhotos;
+
 }

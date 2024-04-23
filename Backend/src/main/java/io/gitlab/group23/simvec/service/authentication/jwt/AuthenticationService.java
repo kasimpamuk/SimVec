@@ -6,6 +6,7 @@ import io.gitlab.group23.simvec.service.UserService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,12 @@ public class AuthenticationService {
 		} else {
 			throw new UsernameNotFoundException("invalid user request !");
 		}
+	}
+
+	public SimvecUser getCurrentUserByToken() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		String username =  auth.getName();
+		return userService.getUserByUsername(username);
 	}
 
 }
