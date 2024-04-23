@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import Slider from '@react-native-community/slider';
 import {
   View,
   Text,
@@ -219,11 +220,16 @@ function MainPage() {
         img => !galleryImageFiles.includes(img),
       );
 
+      console.log(
+        'Images that need to be deleted from backend: ',
+        imagesToDelete,
+      );
       // Step 3: Find images to add to backend
       const imagesToAdd = galleryImageFiles.filter(
         img => !backendImageFiles.includes(img),
       );
 
+      console.log('Images that need to be added to backend: ', imagesToAdd);
       // Create form-data for the second request
       const formData2 = new FormData();
 
@@ -280,6 +286,10 @@ function MainPage() {
       console.error('Error during synchronization:', error);
       Alert.alert('Error', 'Failed to synchronize images');
     }
+  };
+
+  const handleSliderChange = value => {
+    setSearchNumber(Math.floor(value));
   };
 
   return (
@@ -341,6 +351,30 @@ function MainPage() {
       </View>
       <View style={styles.centerContainer}>
         {/* Center the button */}
+        <View
+          style={[
+            {width: buttonWidth * 2}, // Set the button width
+            styles.sliderContainer,
+          ]}>
+          <Text
+            style={[
+              {width: buttonWidth * 2}, // Set the button width
+              styles.label,
+            ]}>
+            Select Number of Results: {searchNumber}
+          </Text>
+          <Slider
+            style={[{width: buttonWidth * 2, height: 30}, styles.slider]}
+            minimumValue={1} // Minimum value for the slider
+            maximumValue={10} // Maximum value for the slider
+            step={1} // Step size for the slider
+            value={searchNumber} // Current value for the slider
+            onValueChange={handleSliderChange} // Event handler when the slider value changes
+            minimumTrackTintColor="#75A47F" // Color for the active part of the slider
+            maximumTrackTintColor="#d3d3d3" // Color for the inactive part of the slider
+            thumbTintColor="#75A47F" // Color for the thumb (slider handle)
+          />
+        </View>
         <TouchableOpacity
           style={[
             {width: buttonWidth}, // Set the button width
@@ -365,6 +399,30 @@ function MainPage() {
 
       <View style={styles.centerContainer}>
         {/* Center the button */}
+        <View
+          style={[
+            {width: buttonWidth * 2}, // Set the button width
+            styles.sliderContainer,
+          ]}>
+          <Text
+            style={[
+              {width: buttonWidth * 2}, // Set the button width
+              styles.label,
+            ]}>
+            Select Number of Results: {searchNumber}
+          </Text>
+          <Slider
+            style={[{width: buttonWidth * 2, height: 30}, styles.slider]}
+            minimumValue={1} // Minimum value for the slider
+            maximumValue={10} // Maximum value for the slider
+            step={1} // Step size for the slider
+            value={searchNumber} // Current value for the slider
+            onValueChange={handleSliderChange} // Event handler when the slider value changes
+            minimumTrackTintColor="#75A47F" // Color for the active part of the slider
+            maximumTrackTintColor="#d3d3d3" // Color for the inactive part of the slider
+            thumbTintColor="#75A47F" // Color for the thumb (slider handle)
+          />
+        </View>
         <TouchableOpacity
           style={[
             {width: buttonWidth}, // Set the button width
@@ -397,6 +455,8 @@ function MainPage() {
 
 const styles = StyleSheet.create({
   centerContainer: {
+    backgroundColor: '#f0f0f0',
+    padding: 20,
     justifyContent: 'center', // Center the button horizontally
     alignItems: 'center', // Align content at the center
     paddingVertical: 2, // Vertical padding for consistency
@@ -409,6 +469,15 @@ const styles = StyleSheet.create({
     color: '#fff', // White text
     fontWeight: 'bold', // Make the text bold
     fontSize: 15, // Increase font size
+  },
+  sliderContainer: {
+    justifyContent: 'center',
+    display: 'flex',
+    alignItems: 'center', // Center icon and text
+    paddingHorizontal: 20, // Padding on the sides
+    paddingVertical: 1, // Padding on the top and bottom
+    backgroundColor: '#fff', // Background color
+    marginBottom: 10,
   },
   row: {
     flexDirection: 'row',
@@ -430,15 +499,16 @@ const styles = StyleSheet.create({
     display: 'flex',
     alignItems: 'center', // Center icon and text
     padding: 5,
-    backgroundColor: '#32cd32',
+    backgroundColor: '#75A47F',
     borderRadius: 5,
   },
 
   buttonHover: {
     backgroundColor: '#dcdcdc', // Background color on press (hover effect)
   },
+
   submitButtonHover: {
-    backgroundColor: '#dcdcdc', // Background color on press (hover effect)
+    backgroundColor: '#BACD92', // Background color on press (hover effect)
   },
   container: {
     flex: 1,
@@ -461,8 +531,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   label: {
+    justifyContent: 'center',
     color: '#555',
     marginBottom: 5,
+  },
+  slider: {
+    justifyContent: 'center',
   },
   textArea: {
     backgroundColor: '#fff',
