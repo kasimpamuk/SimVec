@@ -13,6 +13,7 @@ i18n
             tr: { translation: tr }
         },
         fallbackLng: "en",
+        compatibilityJSON: 'v3',
         interpolation: {
             escapeValue: false
         }

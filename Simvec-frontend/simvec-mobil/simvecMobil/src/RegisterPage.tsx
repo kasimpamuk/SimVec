@@ -1,6 +1,4 @@
-import React, {useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,7 +8,12 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
+  ScrollView,
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
+
 // Assuming simvec.png is correctly placed in your assets folder
 import logo from './assets/simvec.png';
 
@@ -18,10 +21,27 @@ function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState('');
-  const { t, i18n } = useTranslation();
-  // Get the navigation prop
+  const [errors, setErrors] = useState({});
+  const [images, setImages] = useState([]);
+  const { t } = useTranslation();
   const navigation = useNavigation();
+
+  const selectImages = () => {
+    const options = {
+      mediaType: 'photo',
+      selectionLimit: 0,  // Allows multiple selections
+    };
+
+    launchImageLibrary(options, response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else {
+        setImages(images.concat(response.assets));
+      }
+    });
+  };
 
   const handleSubmit = async () => {
     const userData = {
@@ -31,26 +51,35 @@ function RegisterPage() {
     };
 
     try {
+      const formData = new FormData();
+      images.forEach((img, index) => {
+        formData.append('images', {
+          name: 'image' + index + '.jpg',
+          type: img.type,
+          uri: img.uri,
+        });
+      });
+
+      formData.append('userData', JSON.stringify(userData));
+
       const response = await fetch('http://localhost:8080/api/register', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
-        body: JSON.stringify(userData),
+        body: formData,
       });
 
+      const responseBody = await response.json();
       if (!response.ok) {
-        navigation.navigate('Main');
-        const errorData = await response.json();
-        setErrors(errorData);
-        console.error('Registration failed:', errorData);
+        setErrors(responseBody);
+        console.error('Registration failed:', responseBody);
       } else {
         console.log('Registration successful!');
-        setErrors('');
-        navigation.navigate('Main'); // Use the correct name of your main page route
+        setErrors({});
+        navigation.navigate('Main');
       }
     } catch (error) {
-      navigation.navigate('Main');
       console.error('Error during registration:', error);
     }
   };
@@ -60,48 +89,54 @@ function RegisterPage() {
         <View style={styles.imageHeader}>
           <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
         </View>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={styles.container}>
-            <View style={styles.header}></View>
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerHeading}>{t('Register')}</Text>
-
-              <TextInput
-                  style={styles.input}
-                  onChangeText={setName}
-                  value={name}
-                  placeholder={t('Name')}
-                  autoCapitalize="none"
-              />
-
-              <TextInput
-                  style={styles.input}
-                  onChangeText={setEmail}
-                  value={email}
-                  placeholder={t('Email')}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-              />
-
-              <TextInput
-                  style={styles.input}
-                  onChangeText={setPassword}
-                  value={password}
-                  placeholder={t('Password')}
-                  secureTextEntry={true}
-                  autoCapitalize="none"
-              />
-              {errors.password && (
-                  <Text style={styles.error}>{errors.password}</Text>
-              )}
-              <Button
-                  onPress={handleSubmit}
-                  title={t('Register')}
-                  color="#841584" // Example color
-              />
+        <ScrollView>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View style={styles.container}>
+              <View style={styles.registerContainer}>
+                <Text style={styles.registerHeading}>{t('Register')}</Text>
+                <TextInput
+                    style={styles.input}
+                    onChangeText={setName}
+                    value={name}
+                    placeholder={t('Name')}
+                    autoCapitalize="none"
+                />
+                <TextInput
+                    style={styles.input}
+                    onChangeText={setEmail}
+                    value={email}
+                    placeholder={t('Email')}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                />
+                <TextInput
+                    style={styles.input}
+                    onChangeText={setPassword}
+                    value={password}
+                    placeholder={t('Password')}
+                    secureTextEntry={true}
+                    autoCapitalize="none"
+                />
+                {errors.password && (
+                    <Text style={styles.error}>{errors.password}</Text>
+                )}
+                <Button
+                    onPress={selectImages}
+                    title={t('Select Images')}
+                    color="#841584"
+                />
+                {images.map((img, index) => (
+                    <Image key={index} source={{ uri: img.uri }} style={styles.imagePreview} />
+                ))}
+                <Button
+                    onPress={handleSubmit}
+                    title={t('Register')}
+                    color="#841584" // Example color
+                />
+              </View>
             </View>
-          </View>
-        </TouchableWithoutFeedback>
+          </TouchableWithoutFeedback>
+        </ScrollView>
       </>
   );
 }
@@ -112,49 +147,54 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f4f4f4', // A light grey background
+    backgroundColor: '#f4f4f4',
   },
   imageHeader: {
-    width: '100%', // The header takes the full width of the screen
-    paddingBottom: 20, // Adds some space below the logo
-    backgroundColor: '#ffffff', // A white background for the header
-    borderBottomWidth: 1, // A line to separate the header from the content
-    borderColor: '#e0e0e0', // Light grey border color
+    width: '100%',
+    paddingBottom: 20,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
   },
   websiteLogo: {
-    width: '90%', // Less than 100% to give some padding on the sides
-    height: 120, // A bit larger height for a prominent logo
-    marginTop: 50, // Move the logo down a bit from the top of the screen
+    width: '90%',
+    height: 120,
+    marginTop: 50,
     alignSelf: 'center',
   },
   registerContainer: {
-    width: '90%', // Make the container a bit narrower for tablet and large screen support
-    borderRadius: 10, // Rounded corners
-    backgroundColor: '#ffffff', // A white background for the form
-    padding: 20, // Inside padding
-    elevation: 3, // Shadow for Android
-    shadowColor: '#000000', // Shadow color for iOS
-    shadowOffset: {width: 0, height: 2}, // Shadow offset for iOS
-    shadowOpacity: 0.1, // Shadow opacity for iOS
-    shadowRadius: 4, // Shadow blur for iOS
-    marginTop: -60, // Pull the register container up to overlap the logo
+    width: '90%',
+    borderRadius: 10,
+    backgroundColor: '#ffffff',
+    padding: 20,
+    elevation: 3,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    marginTop: -60,
   },
   registerHeading: {
     fontSize: 28,
-    fontWeight: '700', // A bolder weight for the heading
-    color: '#333333', // A darker color for the text
-    marginBottom: 30, // More space below the heading
-    textAlign: 'center', // Center align the text
+    fontWeight: '700',
+    color: '#333333',
+    marginBottom: 30,
+    textAlign: 'center',
   },
   input: {
-    height: 50, // A taller input for easier touch
-    marginBottom: 15, // Increase space between inputs
+    height: 50,
+    marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#cccccc', // A lighter border color
-    borderRadius: 5, // Rounded corners for the input fields
+    borderColor: '#cccccc',
+    borderRadius: 5,
     padding: 10,
-    backgroundColor: '#ffffff', // A white background for the input
-    fontSize: 16, // Slightly larger font size
+    backgroundColor: '#ffffff',
+    fontSize: 16,
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    margin: 5,
   },
 });
 
