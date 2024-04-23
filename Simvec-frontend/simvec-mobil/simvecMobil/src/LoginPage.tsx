@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 // Assuming simvec.png is correctly placed in your assets folder
 import logo from './assets/simvec.png';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -24,12 +25,12 @@ function LoginPage() {
 
   const handleSubmit = async () => {
     const loginData = {
-      email: email,
+      username: email,
       password: password,
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/login', {
+      const response = await fetch('http://localhost:8080/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,11 +39,38 @@ function LoginPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json(); // TODO: We return token as a String not a response entity. Check it out!
         setErrors(errorData);
         console.error('Login failed:', errorData);
       } else {
         console.log('Login successful!');
+        const token = await response.text();
+        await AsyncStorage.setItem('userToken', token); // Do not forget to run 'npm install @react-native-async-storage/async-storage'
+
+        /*
+        TODO: Implement this for all requests requiring authorization
+        Sample HTTP request using saved JWT token
+
+        const fetchWithToken = async (url, options = {}) => {
+            try {
+                // Retrieve the token from storage
+                const token = await AsyncStorage.getItem('userToken');
+                // Set the authorization header
+                options.headers = {
+                    ...options.headers,
+                    Authorization: `Bearer ${token}`
+                };
+
+                // Make the fetch request with the token
+                const response = await fetch(url, options);
+                return response;
+            } catch (error) {
+                console.error('Error with fetch operation:', error);
+            }
+        };
+
+         */
+
         setErrors('');
         navigation.navigate('Main'); // Adjust with your main page route name
       }
