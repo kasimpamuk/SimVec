@@ -9,25 +9,39 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Modal,
+  Animated,
   Alert,
+  Easing,
+  Dimensions,
   Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {faUser} from '@fortawesome/free-solid-svg-icons/faUser';
+import {faGear} from '@fortawesome/free-solid-svg-icons/faGear';
 import RNFS from 'react-native-fs';
 import {toByteArray as btoa} from 'base64-js';
 import logo from './assets/simvec.png';
+import {faRotate} from '@fortawesome/free-solid-svg-icons';
 
 function MainPage() {
   const [text, setText] = useState('');
   const [searchNumber, setSearchNumber] = useState(5);
   const [imageList, setImageList] = useState([]);
   const [imageFilesName, setImageFilesName] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false); // State to track modal visibility
+  const [isButtonPressed, setIsButtonPressed] = useState(false); // State to track button press
+  const handlePressIn = () => setIsButtonPressed(true); // Handle button press
+  const handlePressOut = () => setIsButtonPressed(false); // Handle button release
+  const slideAnim = new Animated.Value(0); // Animation for slide-in effect
   const [image, setImage] = useState<{uri: string; base64?: string} | null>(
     null,
   );
   const navigation = useNavigation();
-
+  const screenWidth = Dimensions.get('window').width; // Get the screen width
+  const buttonWidth = screenWidth / 3;
   const data = {
     input: text,
     topk: searchNumber,
@@ -69,7 +83,24 @@ function MainPage() {
       Alert.alert('Error', 'Error processing text');
     }
   };
-
+  const toggleModal = () => {
+    setIsModalVisible(!isModalVisible); // Toggle modal visibility
+    if (isModalVisible) {
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.ease,
+        useNativeDriver: true,
+      }).start(); // Slide-out animation
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: 1,
+        duration: 300,
+        easing: Easing.ease,
+        useNativeDriver: true,
+      }).start(); // Slide-in animation
+    }
+  };
   const handleImageChange = () => {
     const options = {
       mediaType: 'photo',
@@ -259,17 +290,42 @@ function MainPage() {
       {/* New view for settings and user profile buttons */}
       <View style={styles.row}>
         <TouchableOpacity
-          style={styles.buttonContainer}
-          onPress={() => navigation.navigate('User')}>
-          <Icon name="user" size={20} color="#ff0000" />
+          style={[
+            styles.buttonContainer,
+            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={() => navigation.navigate('User')} // Navigate to User profile
+        >
+          <FontAwesomeIcon icon={faUser} />
           <Text style={styles.buttonText}>User Profile</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.buttonContainer}
-          onPress={() => navigation.navigate('Settings')}>
-          <Icon name="cog" size={20} color="#ff0000" />
+          style={[
+            styles.buttonContainer,
+            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={() => navigation.navigate('Settings')} // Navigate to Settings
+        >
+          <FontAwesomeIcon icon={faGear} />
           <Text style={styles.buttonText}>Settings</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.buttonContainer,
+            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={synchronizationHandler} // Placeholder action
+        >
+          <FontAwesomeIcon icon={faRotate} />
+          <Text style={styles.buttonText}>Synchronize</Text>
         </TouchableOpacity>
       </View>
 
@@ -283,7 +339,22 @@ function MainPage() {
           multiline
         />
       </View>
-      <Button title="Submit Text" onPress={handleTextSubmit} color="#32cd32" />
+      <View style={styles.centerContainer}>
+        {/* Center the button */}
+        <TouchableOpacity
+          style={[
+            {width: buttonWidth}, // Set the button width
+            styles.submitButtonContainer,
+            isButtonPressed ? styles.submitButtonHover : {}, // Apply hover style
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={handleTextSubmit} // Placeholder action
+        >
+          <Text style={styles.submitButtonText}>Submit Text</Text>
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity style={styles.imagePicker} onPress={handleImageChange}>
         {image ? (
           <Image source={{uri: image.uri}} style={styles.imagePreview} />
@@ -291,11 +362,22 @@ function MainPage() {
           <Text style={styles.imagePickerText}>Tap to select an image</Text>
         )}
       </TouchableOpacity>
-      <Button
-        title="Upload Image"
-        onPress={handleImageSubmit}
-        color="#32cd32"
-      />
+
+      <View style={styles.centerContainer}>
+        {/* Center the button */}
+        <TouchableOpacity
+          style={[
+            {width: buttonWidth}, // Set the button width
+            styles.submitButtonContainer,
+            isButtonPressed ? styles.submitButtonHover : {}, // Apply hover style
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={handleImageSubmit} // Placeholder action
+        >
+          <Text style={styles.submitButtonText}>Upload Image</Text>
+        </TouchableOpacity>
+      </View>
 
       {imageList.length > 0 && (
         <View style={styles.resultsContainer}>
@@ -309,22 +391,24 @@ function MainPage() {
           ))}
         </View>
       )}
-
-      <View style={styles.header}>
-        <Button
-          title="Synchronize"
-          onPress={synchronizationHandler}
-          color="#32cd32"
-        />
-      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  centerContainer: {
+    justifyContent: 'center', // Center the button horizontally
+    alignItems: 'center', // Align content at the center
+    paddingVertical: 2, // Vertical padding for consistency
+  },
   buttonText: {
     marginLeft: 10, // Space between icon and text
     color: '#555',
+  },
+  submitButtonText: {
+    color: '#fff', // White text
+    fontWeight: 'bold', // Make the text bold
+    fontSize: 15, // Increase font size
   },
   row: {
     flexDirection: 'row',
@@ -339,6 +423,22 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#f0f0f0',
     borderRadius: 5,
+  },
+
+  submitButtonContainer: {
+    justifyContent: 'center',
+    display: 'flex',
+    alignItems: 'center', // Center icon and text
+    padding: 5,
+    backgroundColor: '#32cd32',
+    borderRadius: 5,
+  },
+
+  buttonHover: {
+    backgroundColor: '#dcdcdc', // Background color on press (hover effect)
+  },
+  submitButtonHover: {
+    backgroundColor: '#dcdcdc', // Background color on press (hover effect)
   },
   container: {
     flex: 1,
@@ -356,7 +456,8 @@ const styles = StyleSheet.create({
     height: 120,
   },
   textAreaContainer: {
-    marginBottom: 20,
+    marginTop: 20,
+    marginBottom: 10,
     paddingHorizontal: 20,
   },
   label: {
@@ -369,13 +470,14 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 5,
     padding: 15,
-    height: 100,
+    height: 50,
     fontSize: 16,
     textAlignVertical: 'top',
     color: '#333',
   },
   imagePicker: {
-    marginBottom: 20,
+    marginBottom: 10,
+    marginTop: 30,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -383,7 +485,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: 10,
     backgroundColor: '#fafafa',
-    height: 200,
+    height: 100,
     marginHorizontal: 20,
   },
   imagePickerText: {
