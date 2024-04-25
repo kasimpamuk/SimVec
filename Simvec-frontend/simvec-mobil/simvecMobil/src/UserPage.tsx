@@ -1,21 +1,53 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, Button, StyleSheet } from 'react-native';
 import logo from './assets/user-profile-icon.jpg';
+
 function UserPage({ navigation }) {
    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+   
+   const [userInfo, setUserInfo] = useState({
+       name: 'default',
+       email: 'default@example.com',
+       password: 'password',
+       photoCount: 100,
+   });
 
+   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('http://10.0.2.2:8080/api/get-user-info', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            // Include any authentication headers if necessary
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+         setUserInfo({
+	    name: data.name,
+	    email: data.email,
+	    password: data.password,
+	    photoCount: data.photoCount,
+	});
+      } catch (error) {
+        console.log('Error fetching user data:', error);
+        setUserInfo({
+            name: 'No Data Available',
+            email: 'No Data Available',
+            password: '••••••••',
+            photoCount: 'N/A',
+            });
+        }
+    };
+    fetchUserData();
+  }, []);
     // Function to toggle password visibility
    const togglePasswordVisibility = () => {
       setIsPasswordVisible(!isPasswordVisible);
    };
-
-  const userInfo = {
-    name: 'admin',
-    email: 'admin@example.com',
-    password: 'password',
-    profilePic: 'https://tr.pngtree.com/freepng/vector-user-young-boy-avatar-icon_4827810.html',
-    photoCount: 98,
-  };
 
   // Function to handle logout logic
   const handleLogout = () => {
@@ -36,7 +68,7 @@ function UserPage({ navigation }) {
         <View style={styles.userInfo}>
           <Text style={styles.name}>{userInfo.name}</Text>
           <Text style={styles.email}>{userInfo.email}</Text>
-          <Text style={styles.password}>Password: {isPasswordVisible ? 'password123' : '••••••••'}</Text>
+          <Text style={styles.password}>Password: {isPasswordVisible ? userInfo.password : '••••••••'}</Text>
           <TouchableOpacity style={styles.showPassword} onPress={togglePasswordVisibility}>
              <Text style={styles.showPasswordText}>Show Password</Text>
           </TouchableOpacity>
