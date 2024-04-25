@@ -1,6 +1,6 @@
-import React, { useState,useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
+import React, {useState, useEffect} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
 import Slider from '@react-native-community/slider';
 import {
   View,
@@ -18,7 +18,6 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {faUser} from '@fortawesome/free-solid-svg-icons/faUser';
@@ -29,7 +28,7 @@ import logo from './assets/simvec.png';
 import {faRotate} from '@fortawesome/free-solid-svg-icons';
 
 function MainPage() {
-  const { t, i18n } = useTranslation();
+  const {t, i18n} = useTranslation();
   const [text, setText] = useState('');
   const [searchNumber, setSearchNumber] = useState(5);
   const [imageList, setImageList] = useState([]);
