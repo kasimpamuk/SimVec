@@ -118,9 +118,11 @@ def initialize_milvus(collection_name, image_folder_path):
     # display all the collections
     #print(utility.list_collections())
     #drop all collections
-    #collections = utility.list_collections()
-    #for collection in collections:
-    #    utility.drop_collection(collection)
+    """
+    collections = utility.list_collections()
+    for collection in collections:
+        utility.drop_collection(collection)
+    """
     
     # Check if the collection already exists
     if(utility.has_collection(collection_name)):
@@ -130,6 +132,7 @@ def initialize_milvus(collection_name, image_folder_path):
     else:
         print(f"Creating new collection: {collection_name}")
         collection = create_milvus_collection(collection_name)
+        print(image_folder_path)
         entities = create_milvus_entities(image_folder_path)
         mr = collection.insert(entities)
         print("mr: ", mr)
@@ -139,6 +142,7 @@ def initialize_milvus(collection_name, image_folder_path):
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_collection_for_new_user(request):
+    
     # request decoding
     data = json.loads(request.body)
     user_id = data.get('user_id')
@@ -146,6 +150,7 @@ def create_collection_for_new_user(request):
     image_folder_path = data.get('image_folder_path')
     print(image_folder_path)
     # Create a collection for the new user
+    print((str) (user_id))
     collection_name = 'user_' + (str) (user_id) + '_gallery'
     user_dataset = csv_maker(image_folder_path, user_id)
     print(user_dataset)
@@ -163,10 +168,11 @@ def image_based_search(request):
     query_image_path = data.get('input')
     print(query_image_path)
     #user_id = data.get('user_id')
-    user_id = "atakan"
+    user_id = "alper"
     # Connect to Milvus service
     collection_name = 'user_' + (str) (user_id) + '_gallery'
     #collection_name = 'user_2_gallery'
+    print(collection_name)
     collection = initialize_milvus(collection_name, None)
     collection.load()
     try:    
@@ -191,7 +197,7 @@ def image_based_search(request):
         filtered_results = []
         for result in results[0]:
             if (result.distance) < (distance_threshold):
-                #print(result.distance)
+                print(result.distance)
                 formatted_id = "/" + result.id[1:]  
                 filtered_results.append(formatted_id)
 
@@ -209,8 +215,7 @@ def text_based_search(request):
     data = json.loads(request.body)
     topk = data.get('topk')
     query_text = data.get('input')
-    #user_id = data.get('user_id')
-    user_id = "atakan"
+    user_id = "alper"
     # Connect to Milvus service
     collection_name = 'user_' + (str) (user_id) + '_gallery'
     #collection_name = 'user_2_gallery'
@@ -238,7 +243,7 @@ def text_based_search(request):
         filtered_results = []
         for result in results[0]:
             if (result.distance) < (distance_threshold):
-                #print(result.distance)
+                print(result.distance)
                 formatted_id = "/" + result.id[1:]  
                 filtered_results.append(formatted_id)
 
