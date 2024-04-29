@@ -753,6 +753,57 @@ section {
   background-color: #5777ba;
 }
 
+.developer-image {
+  width: 300px; /* Adjust the width of the image */
+    height: 500px; /* Adjust the height of the image */
+    margin-bottom: 10px;
+}
+
+/* Developers Section Styles */
+.developers {
+  padding: 60px 0;
+}
+
+.developers .section-title {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.developers .member {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.developers .member img {
+  max-width: 200px;
+  height: auto;
+  border: 5px solid #fff;
+  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
+  transition: 0.3s;
+}
+
+.developers .member img:hover {
+  transform: scale(1.1);
+}
+
+.developers .member h4 {
+  font-weight: 700;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.developers .member span {
+  font-style: italic;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.developers .member p {
+  margin-bottom: 0;
+}
+
+
+
 /*--------------------------------------------------------------
 # Pricing
 --------------------------------------------------------------*/
