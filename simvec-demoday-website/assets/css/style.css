@@ -86,6 +86,10 @@ h6 {
   background: rgba(255, 255, 255, 0.95);
 }
 
+.img-header{
+  scale: 1.5;
+}
+
 #header.header-transparent {
   background: transparent;
 }
@@ -466,6 +470,7 @@ h6 {
 # Sections General
 --------------------------------------------------------------*/
 section {
+  margin-top: 10px;
   padding: 60px 0;
   overflow: hidden;
 }
@@ -550,7 +555,13 @@ section {
 /*--------------------------------------------------------------
 # App Features
 --------------------------------------------------------------*/
+.features .section-title
+{
+  margin-bottom: 30px;
+}
+
 .features .content {
+  margin-top: 10px;
   padding: 30px 0;
 }
 
@@ -570,6 +581,8 @@ section {
   color: #5777ba;
 }
 
+
+
 .features .content .icon-box p {
   font-size: 15px;
   color: #979aa1;
@@ -578,16 +591,19 @@ section {
 
 @media (max-width: 991px) {
   .features .image {
+    margin-top: 30px;
     text-align: center;
   }
 
   .features .image img {
+    margin-top: 30px;
     max-width: 80%;
   }
 }
 
 @media (max-width: 667px) {
   .features .image img {
+    margin-top: 30px;
     max-width: 100%;
   }
 }
@@ -695,6 +711,7 @@ section {
 }
 
 .developers .member {
+  margin-left: 20px;
   display: flex;
   align-items: center; /* Center everything horizontally in the flex container */
   text-align: center; /* Ensures that any inline content (like text) is also centered */
@@ -726,7 +743,7 @@ section {
 }
 
 .developers .member p {
-  margin-bottom: 0;
+  margin-bottom: 10px;
 }
 
 .logo-container {
