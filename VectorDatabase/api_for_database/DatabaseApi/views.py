@@ -193,6 +193,7 @@ def create_collection_for_new_user(request):
 
     return JsonResponse({'message': 'Collection created successfully', 'collection_name': collection_name})
 
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def image_based_search(request):
@@ -202,10 +203,17 @@ def image_based_search(request):
     query_image_path = data.get('input')
     print(query_image_path)
     #user_id = data.get('user_id')
-    user_id = "atakan"
-    # Connect to Milvus service
-    collection_name = 'user_' + (str) (user_id) + '_gallery'
-    #collection_name = 'user_2_gallery'
+    user_id = "blipp"
+    model_option = data.get('model_option', 'clip')  # Default to 'clip' if not specified
+    collection_name = 'user' + str(user_id) + 'gallery'
+    model = None
+    if model_option == 'clip':
+            model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
+            processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
+    elif model_option == 'blip':
+        model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+        processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+
     collection = initialize_milvus(collection_name, None)
     collection.load()
     try:    
@@ -230,7 +238,7 @@ def image_based_search(request):
         filtered_results = []
         for result in results[0]:
             if (result.distance) < (distance_threshold):
-                #print(result.distance)
+                print(result.distance)
                 formatted_id = "/" + result.id[1:]  
                 filtered_results.append(formatted_id)
 
@@ -248,15 +256,27 @@ def text_based_search(request):
     data = json.loads(request.body)
     topk = data.get('topk')
     query_text = data.get('input')
-    #user_id = data.get('user_id')
-    user_id = "atakan"
+    user_id = data.get('user_id')
+    #user_id = "blipp"
+    model_option = data.get('model_option', 'clip')  # Default to 'clip' if not specified
+    collection_name = 'user' + str(user_id) + 'gallery'
+    model = None
+    if model_option == 'clip':
+            model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
+            processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
+    elif model_option == 'blip':
+        model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+        processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+    
     # Connect to Milvus service
-    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    
     #collection_name = 'user_2_gallery'
-    collection = initialize_milvus(collection_name, None) 
+    print(collection_name)
+    collection = initialize_milvus(collection_name, None, model, processor) 
     collection.load()
 
     try:
+        
         text_inputs = processor(text=query_text, return_tensors="pt", padding=True, truncation=True, max_length=77)
         query_text_features = model.get_text_features(**text_inputs)
         text_embedding = query_text_features.squeeze(0).detach().numpy().tolist()
@@ -277,7 +297,7 @@ def text_based_search(request):
         filtered_results = []
         for result in results[0]:
             if (result.distance) < (distance_threshold):
-                #print(result.distance)
+                print(result.distance)
                 formatted_id = "/" + result.id[1:]  
                 filtered_results.append(formatted_id)
 
@@ -299,7 +319,7 @@ def image_embedding_and_storage(request):
     user_dataset = 'user_datasets/image_paths_' + (str) (user_id) + '.csv'
 
 
-    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    collection_name = 'user' + (str) (user_id) + 'gallery'
     collection = initialize_milvus(collection_name, user_dataset)
     if operation == 'insert':
         # get the id of the last image in the csv file
