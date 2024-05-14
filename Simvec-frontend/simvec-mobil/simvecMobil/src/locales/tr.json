@@ -23,5 +23,8 @@
   "Enable Notifications": "Bildirimleri Etkinleştir",
   "Dark Theme": "Koyu Tema",
   "Back to Profile": "Profile Geri Dön",
-  "Change Language": "Dili Değiştir"
+  "Change Language": "Dili Değiştir",
+  "Select a Model": "Modeli Seçiniz",
+  "Standard Version (High accuracy)": "Standart Versiyon (Yüksek isabetli)",
+  "Advanced Version (Better in complex queries)": "Gelişmiş Versiyon (Uzun girdilerde daha isabetli)"
 }
