@@ -61,11 +61,11 @@ public class SimvecController {
 		return ResponseEntity.ok(authenticationService.registerUser(simvecUser));
 	}
 
-	@PostMapping("/image-based-search/{topk}")
-	public ResponseEntity<List<byte[]>> imageBasedSearch(@RequestParam("file") MultipartFile image, @PathVariable(name = "topk") String topk) {
+	@PostMapping("/image-based-search/{topk}/{model}")
+	public ResponseEntity<List<byte[]>> imageBasedSearch(@RequestParam("file") MultipartFile image, @PathVariable(name = "topk") String topk, @PathVariable(name = "model") String model) {
 		System.out.println("in image based search");
 		try {
-			return ResponseEntity.ok(vectorDatabaseService.executeImageBasedSearch(image, topk));
+			return ResponseEntity.ok(vectorDatabaseService.executeImageBasedSearch(image, topk, model));
 		} catch (IOException e) {
 			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(null);
 		} catch (InterruptedException e) {
@@ -73,7 +73,7 @@ public class SimvecController {
 		}
 	}
 
-	@PostMapping("/text-based-search")
+	@PostMapping("/text-based-search/{model}")
 	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
 		System.out.println("Text Based Search Endpoint");
 		// String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());

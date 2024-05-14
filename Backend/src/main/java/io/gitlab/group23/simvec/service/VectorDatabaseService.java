@@ -37,11 +37,11 @@ public class VectorDatabaseService {
 		this.vectorDatabaseRequestService = vectorDatabaseRequestService;
 	}
 
-	public List<byte[]> executeImageBasedSearch(MultipartFile image, String topk) throws IOException, InterruptedException {
+	public List<byte[]> executeImageBasedSearch(MultipartFile image, String topk, String model) throws IOException, InterruptedException {
 		ImageUtil.saveImage(SEARCHED_IMAGE_FILE_NAME, SEARCH_IMAGE_SAVE_DIRECTORY, image.getBytes());
 		List<String> similarImagePaths = vectorDatabaseRequestService.sendPostRequest(
 				this.getURI(BASE_URL, IMAGE_BASED_SEARCH_ENDPOINT),
-				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY + "/" + SEARCHED_IMAGE_FILE_NAME, topk)
+				new VectorDatabaseRequest(SEARCH_IMAGE_SAVE_DIRECTORY + "/" + SEARCHED_IMAGE_FILE_NAME, topk, model)
 		);
 		return this.getAllImages(similarImagePaths);
 	}

@@ -30,6 +30,7 @@ function ImageUpload() {
   const [imageList, setImageList] = useState([]);
   const [text, setText] = useState('');
   const [searchNumber, setSearchNumber] = useState(5);
+  const [model, setModel] = useState("Clip"); // TODO: Put your default model!!!
   const handleTextChange = (e) => {
     setText(e.target.value);
   };
@@ -50,7 +51,7 @@ function ImageUpload() {
     formData.append('file', image);
     console.log(image);
     try {
-      const response = await fetch(`http://localhost:8080/api/image-based-search/${searchNumber}`, {
+      const response = await fetch(`http://localhost:8080/api/image-based-search/${searchNumber}/${model}`, {
         method: 'POST',
         body: formData,
       });
@@ -66,7 +67,8 @@ function ImageUpload() {
 
   const data = {
     input: text,
-    topk: searchNumber
+    topk: searchNumber,
+    model: model
   };
 
   const handleTextSubmit = async (e) => {
@@ -95,6 +97,10 @@ function ImageUpload() {
 
   const handleNumberChange = (e) => {
     setSearchNumber(e.target.value);
+  };
+
+  const handleModelChange = (e) => {
+    setModel(e.target.value)
   };
 
   return (
@@ -127,6 +133,17 @@ function ImageUpload() {
               onChange={handleNumberChange}
               className="number-input"
               min="1"
+            />
+          </div>
+
+          <div className="number-selection-container">
+            <label htmlFor="model-input" className="model-input-label">Model:</label>
+            <input
+                id="model-input"
+                type="string"
+                value={model}
+                onChange={handleModelChange}
+                className="model-input"
             />
           </div>
 
