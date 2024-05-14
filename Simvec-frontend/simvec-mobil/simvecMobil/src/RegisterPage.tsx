@@ -13,11 +13,14 @@ import {
 } from 'react-native';
 // Assuming simvec.png is correctly placed in your assets folder
 import logo from './assets/simvec.png';
+import { Picker } from '@react-native-picker/picker'; // New import from @react-native-picker/picker
+import RNPickerSelect from 'react-native-picker-select'; 
 
 function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedModel, setSelectedModel] = useState('recommended');
   const [errors, setErrors] = useState('');
   const { t, i18n } = useTranslation();
   // Get the navigation prop
@@ -28,6 +31,7 @@ function RegisterPage() {
       userName: name,
       email: email,
       password: password,
+      model: selectedModel,
     };
 
     try {
@@ -91,6 +95,17 @@ function RegisterPage() {
                   secureTextEntry={true}
                   autoCapitalize="none"
               />
+              <Text style={styles.label}>{t('Select a Model')}</Text>
+
+                    <Picker
+                        selectedValue={selectedModel}
+                        style={styles.picker}
+                        onValueChange={(itemValue, itemIndex) => setSelectedModel(itemValue)}
+                    >
+                        <Picker.Item label={t('Standard Version (High accuracy)')} value="recommended" />
+                        <Picker.Item label={t('Advanced Version (Better in complex queries)')} value="advanced" />
+                    </Picker>
+
               {errors.password && (
                   <Text style={styles.error}>{errors.password}</Text>
               )}
@@ -115,11 +130,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f4f4f4', // A light grey background
   },
   imageHeader: {
-    width: '100%', // The header takes the full width of the screen
-    paddingBottom: 20, // Adds some space below the logo
-    backgroundColor: '#ffffff', // A white background for the header
-    borderBottomWidth: 1, // A line to separate the header from the content
-    borderColor: '#e0e0e0', // Light grey border color
+    width: '100%',
+    paddingBottom: 20,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
   },
   websiteLogo: {
     width: '90%', // Less than 100% to give some padding on the sides
@@ -158,4 +173,26 @@ const styles = StyleSheet.create({
   },
 });
 
+const pickerSelectStyles = StyleSheet.create({
+    inputIOS: {
+        fontSize: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderWidth: 1,
+        borderColor: 'gray',
+        borderRadius: 4,
+        color: 'black',
+        paddingRight: 30, // to ensure the text is never behind the icon
+    },
+    inputAndroid: {
+        fontSize: 16,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderWidth: 0.5,
+        borderColor: 'purple',
+        borderRadius: 8,
+        color: 'black',
+        paddingRight: 30, // to ensure the text is never behind the icon
+    },
+});
 export default RegisterPage;
