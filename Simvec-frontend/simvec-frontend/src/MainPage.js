@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './MainPage.css';
 import logo from './simvec.png';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const base64ToBlob = (base64) => {
   const standardBase64 = base64.replace(/-/g, '+').replace(/_/g, '/');
@@ -50,8 +51,13 @@ function ImageUpload() {
     formData.append('file', image);
     console.log(image);
     try {
+      const token = await AsyncStorage.getItem('userToken');
       const response = await fetch(`http://localhost:8080/api/image-based-search/${searchNumber}`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
       const base64Images = await response.json();
@@ -77,10 +83,12 @@ function ImageUpload() {
     }
   
     try {
+      const token = await AsyncStorage.getItem('userToken');
       const response = await fetch('http://localhost:8080/api/text-based-search', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(data)
       });

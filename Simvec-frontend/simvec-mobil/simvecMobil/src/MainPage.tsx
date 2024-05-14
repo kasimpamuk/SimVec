@@ -15,6 +15,7 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import { toByteArray as btoa } from 'base64-js';
 import logo from './assets/simvec.png';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function MainPage() {
   const [text, setText] = useState('');
@@ -36,12 +37,15 @@ function MainPage() {
     }
 
     try {
+      const token = await AsyncStorage.getItem('userToken');
+
       const response = await fetch(
           'http://10.0.2.2:8080/api/text-based-search',
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(data),
           },
@@ -89,10 +93,12 @@ function MainPage() {
     };
 
     try {
+      const token = await AsyncStorage.getItem('userToken');
       const response = await fetch(`http://10.0.2.2:8080/api/image-based-search/${searchNumber}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(imageData)
       });

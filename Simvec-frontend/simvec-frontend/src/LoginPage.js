@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 import logo from './simvec.png';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function LoginPage() {
   const [username, setUsername] = useState('');
