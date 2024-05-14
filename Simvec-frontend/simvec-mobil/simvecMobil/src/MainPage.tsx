@@ -19,13 +19,13 @@ import {
   Platform,
 } from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import {launchImageLibrary} from 'react-native-image-picker';
+import {launchImageLibrary, launchCamera} from 'react-native-image-picker';
 import {faUser} from '@fortawesome/free-solid-svg-icons/faUser';
 import {faGear} from '@fortawesome/free-solid-svg-icons/faGear';
 import RNFS from 'react-native-fs';
 import {toByteArray as btoa} from 'base64-js';
 import logo from './assets/simvec.png';
-import {faRotate} from '@fortawesome/free-solid-svg-icons';
+import {faRotate, faCamera} from '@fortawesome/free-solid-svg-icons';
 
 function MainPage() {
   const {t, i18n} = useTranslation();
@@ -39,7 +39,7 @@ function MainPage() {
   const handlePressOut = () => setIsButtonPressed(false); // Handle button release
   const slideAnim = new Animated.Value(0); // Animation for slide-in effect
   const [image, setImage] = useState<{uri: string; base64?: string} | null>(
-    null,
+      null,
   );
   const navigation = useNavigation();
   const screenWidth = Dimensions.get('window').width; // Get the screen width
@@ -62,20 +62,20 @@ function MainPage() {
 
     try {
       const response = await fetch(
-        'http://10.0.2.2:8080/api/text-based-search',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+          'http://10.0.2.2:8080/api/text-based-search',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
           },
-          body: JSON.stringify(data),
-        },
       );
 
       const base64Images = await response.json();
 
       const urls = base64Images.map(
-        base64 => `data:image/jpeg;base64,${base64}`,
+          base64 => `data:image/jpeg;base64,${base64}`,
       );
       setImageList(urls);
       console.log(imageList);
@@ -125,6 +125,28 @@ function MainPage() {
     });
   };
 
+  const handleCaptureImage = () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 1,
+      includeBase64: true,
+    };
+
+    launchCamera(options, response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else {
+        const source = {
+          uri: response.assets![0].uri,
+          base64: response.assets![0].base64,
+        };
+        setImage(source);
+      }
+    });
+  };
+
   const handleImageSubmit = async () => {
     if (!image || !image.base64) {
       Alert.alert('Error', 'Please select an image to upload');
@@ -139,14 +161,14 @@ function MainPage() {
     });
     try {
       const response = await fetch(
-        `http://10.0.2.2:8080/api/image-based-search/${searchNumber}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'multipart/form-data',
+          `http://10.0.2.2:8080/api/image-based-search/${searchNumber}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+            body: formData,
           },
-          body: formData,
-        },
       );
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -154,7 +176,7 @@ function MainPage() {
 
       const base64Images: string[] = await response.json();
       const urls = base64Images.map(
-        base64 => `data:image/jpeg;base64,${base64}`,
+          base64 => `data:image/jpeg;base64,${base64}`,
       );
       setImageList(urls);
     } catch (error) {
@@ -180,7 +202,7 @@ function MainPage() {
         const files = await RNFS.readDir(dir);
         console.log('files: ', files);
         const imageFiles = files.filter(file =>
-          ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
+            ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
         );
         console.log(imageFiles);
         imageNames = imageNames.concat(imageFiles.map(file => file.name));
@@ -201,11 +223,11 @@ function MainPage() {
       formData1.append('username', user_info.username);
 
       const response1 = await fetch(
-        'http://10.0.2.2:8080/api/synchronize-images',
-        {
-          method: 'POST',
-          body: formData1,
-        },
+          'http://10.0.2.2:8080/api/synchronize-images',
+          {
+            method: 'POST',
+            body: formData1,
+          },
       );
 
       if (!response1.ok) {
@@ -218,16 +240,16 @@ function MainPage() {
 
       // Step 2: Find images to delete from backend
       const imagesToDelete = backendImageFiles.filter(
-        img => !galleryImageFiles.includes(img),
+          img => !galleryImageFiles.includes(img),
       );
 
       console.log(
-        'Images that need to be deleted from backend: ',
-        imagesToDelete,
+          'Images that need to be deleted from backend: ',
+          imagesToDelete,
       );
       // Step 3: Find images to add to backend
       const imagesToAdd = galleryImageFiles.filter(
-        img => !backendImageFiles.includes(img),
+          img => !backendImageFiles.includes(img),
       );
 
       console.log('Images that need to be added to backend: ', imagesToAdd);
@@ -244,8 +266,8 @@ function MainPage() {
       for (const imageName of imagesToAdd) {
         // Assuming you have a way to retrieve the actual image file by name
         const imageFile = await RNFS.readFile(
-          RNFS.PicturesDirectoryPath + '/' + imageName,
-          'base64',
+            RNFS.PicturesDirectoryPath + '/' + imageName,
+            'base64',
         ); // Read image as base64
         imageFilesToUpload.push({
           uri: 'data:image/jpeg;base64,' + imageFile, // Data URI format
@@ -267,17 +289,17 @@ function MainPage() {
 
       // Send the second request with form-data
       const response2 = await fetch(
-        'http://10.0.2.2:8080/api/add-delete-images',
-        {
-          method: 'POST',
-          body: formData2,
-        },
+          'http://10.0.2.2:8080/api/add-delete-images',
+          {
+            method: 'POST',
+            body: formData2,
+          },
       );
 
       if (!response2.ok) {
         console.error(
-          'Synchronization request failed:',
-          await response2.json(),
+            'Synchronization request failed:',
+            await response2.json(),
         );
         throw new Error('Network response was not ok');
       }
@@ -291,11 +313,11 @@ function MainPage() {
       formData3.append('updated_images', JSON.stringify(imagesToDelete));
 
       const response3 = await fetch(
-        'http://10.0.2.2:8000/api/synchronization',
-        {
-          method: 'POST',
-          body: formData3,
-        },
+          'http://10.0.2.2:8000/api/synchronization',
+          {
+            method: 'POST',
+            body: formData3,
+          },
       );
       if (!response3.ok) {
         throw new Error('Network response was not ok');
@@ -314,11 +336,11 @@ function MainPage() {
       });
       // Send the imag
       const response4 = await fetch(
-        'http://10.0.2.2:8000/api/synchronization',
-        {
-          method: 'POST',
-          body: formData4,
-        },
+          'http://10.0.2.2:8000/api/synchronization',
+          {
+            method: 'POST',
+            body: formData4,
+          },
       );
       if (!response4.ok) {
         throw new Error('Network response was not ok');
@@ -338,163 +360,176 @@ function MainPage() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Image source={logo} style={styles.logo} resizeMode="contain" />
-      </View>
-      {/* New view for settings and user profile buttons */}
-      <View style={styles.row}>
-        <TouchableOpacity
-          style={[
-            styles.buttonContainer,
-            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
-          ]}
-          onPressIn={handlePressIn} // Simulate hover
-          onPressOut={handlePressOut} // Revert hover
-          onPress={() => navigation.navigate('User')} // Navigate to User profile
-        >
-          <FontAwesomeIcon icon={faUser} />
-          <Text style={styles.buttonText}>User Profile</Text>
-        </TouchableOpacity>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <Image source={logo} style={styles.logo} resizeMode="contain" />
+        </View>
+        {/* New view for settings and user profile buttons */}
+        <View style={styles.row}>
+          <TouchableOpacity
+              style={[
+                styles.buttonContainer,
+                isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+              ]}
+              onPressIn={handlePressIn} // Simulate hover
+              onPressOut={handlePressOut} // Revert hover
+              onPress={() => navigation.navigate('User')} // Navigate to User profile
+          >
+            <FontAwesomeIcon icon={faUser} />
+            <Text style={styles.buttonText}>User Profile</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.buttonContainer,
-            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
-          ]}
-          onPressIn={handlePressIn} // Simulate hover
-          onPressOut={handlePressOut} // Revert hover
-          onPress={() => navigation.navigate('Settings')} // Navigate to Settings
-        >
-          <FontAwesomeIcon icon={faGear} />
-          <Text style={styles.buttonText}>Settings</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+              style={[
+                styles.buttonContainer,
+                isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+              ]}
+              onPressIn={handlePressIn} // Simulate hover
+              onPressOut={handlePressOut} // Revert hover
+              onPress={() => navigation.navigate('Settings')} // Navigate to Settings
+          >
+            <FontAwesomeIcon icon={faGear} />
+            <Text style={styles.buttonText}>Settings</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.buttonContainer,
-            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
-          ]}
-          onPressIn={handlePressIn} // Simulate hover
-          onPressOut={handlePressOut} // Revert hover
-          onPress={synchronizationHandler} // Placeholder action
-        >
-          <FontAwesomeIcon icon={faRotate} />
-          <Text style={styles.buttonText}>Synchronize</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+              style={[
+                styles.buttonContainer,
+                isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+              ]}
+              onPressIn={handlePressIn} // Simulate hover
+              onPressOut={handlePressOut} // Revert hover
+              onPress={synchronizationHandler} // Placeholder action
+          >
+            <FontAwesomeIcon icon={faRotate} />
+            <Text style={styles.buttonText}>Synchronize</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.textAreaContainer}>
-        <Text style={styles.label}>Enter text for search:</Text>
-        <TextInput
-          style={styles.textArea}
-          value={text}
-          onChangeText={setText}
-          placeholder="Type here..."
-          multiline
-        />
-      </View>
-      <View style={styles.centerContainer}>
-        {/* Center the button */}
-        <View
-          style={[
-            {width: buttonWidth * 2}, // Set the button width
-            styles.sliderContainer,
-          ]}>
-          <Text
-            style={[
-              {width: buttonWidth * 2}, // Set the button width
-              styles.label,
-            ]}>
-            Select Number of Results: {searchNumber}
-          </Text>
-          <Slider
-            style={[{width: buttonWidth * 2, height: 30}, styles.slider]}
-            minimumValue={1} // Minimum value for the slider
-            maximumValue={10} // Maximum value for the slider
-            step={1} // Step size for the slider
-            value={searchNumber} // Current value for the slider
-            onValueChange={handleSliderChange} // Event handler when the slider value changes
-            minimumTrackTintColor="#75A47F" // Color for the active part of the slider
-            maximumTrackTintColor="#d3d3d3" // Color for the inactive part of the slider
-            thumbTintColor="#75A47F" // Color for the thumb (slider handle)
+        <View style={styles.textAreaContainer}>
+          <Text style={styles.label}>Enter text for search:</Text>
+          <TextInput
+              style={styles.textArea}
+              value={text}
+              onChangeText={setText}
+              placeholder="Type here..."
+              multiline
           />
         </View>
-        <TouchableOpacity
-          style={[
-            {width: buttonWidth}, // Set the button width
-            styles.submitButtonContainer,
-            isButtonPressed ? styles.submitButtonHover : {}, // Apply hover style
-          ]}
-          onPressIn={handlePressIn} // Simulate hover
-          onPressOut={handlePressOut} // Revert hover
-          onPress={handleTextSubmit} // Placeholder action
-        >
-          <Text style={styles.submitButtonText}>Submit Text</Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.imagePicker} onPress={handleImageChange}>
-        {image ? (
-          <Image source={{uri: image.uri}} style={styles.imagePreview} />
-        ) : (
-          <Text style={styles.imagePickerText}>Tap to select an image</Text>
-        )}
-      </TouchableOpacity>
-
-      <View style={styles.centerContainer}>
-        {/* Center the button */}
-        <View
-          style={[
-            {width: buttonWidth * 2}, // Set the button width
-            styles.sliderContainer,
-          ]}>
-          <Text
-            style={[
-              {width: buttonWidth * 2}, // Set the button width
-              styles.label,
-            ]}>
-            Select Number of Results: {searchNumber}
-          </Text>
-          <Slider
-            style={[{width: buttonWidth * 2, height: 30}, styles.slider]}
-            minimumValue={1} // Minimum value for the slider
-            maximumValue={10} // Maximum value for the slider
-            step={1} // Step size for the slider
-            value={searchNumber} // Current value for the slider
-            onValueChange={handleSliderChange} // Event handler when the slider value changes
-            minimumTrackTintColor="#75A47F" // Color for the active part of the slider
-            maximumTrackTintColor="#d3d3d3" // Color for the inactive part of the slider
-            thumbTintColor="#75A47F" // Color for the thumb (slider handle)
-          />
-        </View>
-        <TouchableOpacity
-          style={[
-            {width: buttonWidth}, // Set the button width
-            styles.submitButtonContainer,
-            isButtonPressed ? styles.submitButtonHover : {}, // Apply hover style
-          ]}
-          onPressIn={handlePressIn} // Simulate hover
-          onPressOut={handlePressOut} // Revert hover
-          onPress={handleImageSubmit} // Placeholder action
-        >
-          <Text style={styles.submitButtonText}>Upload Image</Text>
-        </TouchableOpacity>
-      </View>
-
-      {imageList.length > 0 && (
-        <View style={styles.resultsContainer}>
-          <Text style={styles.subheading}>Returned Images:</Text>
-          {imageList.map((imgSrc, index) => (
-            <Image
-              key={index}
-              source={{uri: imgSrc}}
-              style={styles.resultImage}
+        <View style={styles.centerContainer}>
+          {/* Center the button */}
+          <View
+              style={[
+                {width: buttonWidth * 2}, // Set the button width
+                styles.sliderContainer,
+              ]}>
+            <Text
+                style={[
+                  {width: buttonWidth * 2}, // Set the button width
+                  styles.label,
+                ]}>
+              Select Number of Results: {searchNumber}
+            </Text>
+            <Slider
+                style={[{width: buttonWidth * 2, height: 30}, styles.slider]}
+                minimumValue={1} // Minimum value for the slider
+                maximumValue={10} // Maximum value for the slider
+                step={1} // Step size for the slider
+                value={searchNumber} // Current value for the slider
+                onValueChange={handleSliderChange} // Event handler when the slider value changes
+                minimumTrackTintColor="#75A47F" // Color for the active part of the slider
+                maximumTrackTintColor="#d3d3d3" // Color for the inactive part of the slider
+                thumbTintColor="#75A47F" // Color for the thumb (slider handle)
             />
-          ))}
+          </View>
+          <TouchableOpacity
+              style={[
+                {width: buttonWidth}, // Set the button width
+                styles.submitButtonContainer,
+                isButtonPressed ? styles.submitButtonHover : {}, // Apply hover style
+              ]}
+              onPressIn={handlePressIn} // Simulate hover
+              onPressOut={handlePressOut} // Revert hover
+              onPress={handleTextSubmit} // Placeholder action
+          >
+            <Text style={styles.submitButtonText}>Submit Text</Text>
+          </TouchableOpacity>
         </View>
-      )}
-    </ScrollView>
+
+        <TouchableOpacity style={styles.imagePicker} onPress={handleImageChange}>
+          {image ? (
+              <Image source={{uri: image.uri}} style={styles.imagePreview} />
+          ) : (
+              <Text style={styles.imagePickerText}>Tap to select an image</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+            style={[
+              styles.cameraButton,
+              isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+            ]}
+            onPressIn={handlePressIn} // Simulate hover
+            onPressOut={handlePressOut} // Revert hover
+            onPress={handleCaptureImage} // Launch the camera
+        >
+          <FontAwesomeIcon icon={faCamera} />
+          <Text style={styles.buttonText}>Capture Image</Text>
+        </TouchableOpacity>
+
+        <View style={styles.centerContainer}>
+          {/* Center the button */}
+          <View
+              style={[
+                {width: buttonWidth * 2}, // Set the button width
+                styles.sliderContainer,
+              ]}>
+            <Text
+                style={[
+                  {width: buttonWidth * 2}, // Set the button width
+                  styles.label,
+                ]}>
+              Select Number of Results: {searchNumber}
+            </Text>
+            <Slider
+                style={[{width: buttonWidth * 2, height: 30}, styles.slider]}
+                minimumValue={1} // Minimum value for the slider
+                maximumValue={10} // Maximum value for the slider
+                step={1} // Step size for the slider
+                value={searchNumber} // Current value for the slider
+                onValueChange={handleSliderChange} // Event handler when the slider value changes
+                minimumTrackTintColor="#75A47F" // Color for the active part of the slider
+                maximumTrackTintColor="#d3d3d3" // Color for the inactive part of the slider
+                thumbTintColor="#75A47F" // Color for the thumb (slider handle)
+            />
+          </View>
+          <TouchableOpacity
+              style={[
+                {width: buttonWidth}, // Set the button width
+                styles.submitButtonContainer,
+                isButtonPressed ? styles.submitButtonHover : {}, // Apply hover style
+              ]}
+              onPressIn={handlePressIn} // Simulate hover
+              onPressOut={handlePressOut} // Revert hover
+              onPress={handleImageSubmit} // Placeholder action
+          >
+            <Text style={styles.submitButtonText}>Upload Image</Text>
+          </TouchableOpacity>
+        </View>
+
+        {imageList.length > 0 && (
+            <View style={styles.resultsContainer}>
+              <Text style={styles.subheading}>Returned Images:</Text>
+              {imageList.map((imgSrc, index) => (
+                  <Image
+                      key={index}
+                      source={{uri: imgSrc}}
+                      style={styles.resultImage}
+                  />
+              ))}
+            </View>
+        )}
+      </ScrollView>
   );
 }
 
@@ -615,6 +650,16 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 10,
+  },
+  cameraButton: {
+    marginBottom: 20,
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+    flexDirection: 'row', // Horizontal alignment
   },
   resultsContainer: {
     marginTop: 20,
