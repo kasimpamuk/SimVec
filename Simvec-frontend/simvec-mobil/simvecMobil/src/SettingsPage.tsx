@@ -1,42 +1,27 @@
 import React, { useState } from 'react';
 import { View, Text, Switch, Button, StyleSheet } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function SettingsPage({ navigation }) {
   const { t, i18n } = useTranslation();
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
 
-  // Toggle notification settings
   const toggleNotifications = () => setIsNotificationsEnabled(previousState => !previousState);
 
-  // Toggle theme settings
   const toggleTheme = () => setIsDarkTheme(previousState => !previousState);
 
-  // Function to handle navigation back to the main page or user profile
   const handleBackToProfile = () => {
-    navigation.navigate('UserProfile');
+    navigation.navigate('Main');
   };
 
-  // Function to toggle between English and French
-  const toggleLanguage = () => {
-    let newLang;
-    switch (i18n.language) {
-      case 'en':
-        newLang = 'fr';
-        break;
-      case 'fr':
-        newLang = 'tr';
-        break;
-      case 'tr':
-        newLang = 'en';
-        break;
-      default:
-        newLang = 'en';  // Default to English if current language is unrecognized
-    }
-    i18n.changeLanguage(newLang);
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+    setSelectedLanguage(lang);
   };
-
 
   return (
       <View style={styles.container}>
@@ -64,13 +49,25 @@ function SettingsPage({ navigation }) {
           />
         </View>
 
+        <View style={styles.setting}>
+          <Text style={styles.settingText}>{t('Language')}</Text>
+          <RNPickerSelect
+              onValueChange={value => changeLanguage(value)}
+              items={[
+                { label: 'English', value: 'en' },
+                { label: 'Français', value: 'fr' },
+                { label: 'Türkçe', value: 'tr' },
+                {label: 'Español', value: 'sp'},
+                {label: 'Deutsch', value: 'de'},
+                {label: 'Italiano', value: 'it'},
+              ]}
+              value={selectedLanguage}
+              style={pickerSelectStyles}
+          />
+        </View>
+
         <View style={styles.buttonContainer}>
           <Button title={t('Back to Profile')} onPress={handleBackToProfile} color="#ff6347" />
-          <Button
-              title={t('Change Language')}
-              onPress={toggleLanguage}
-              color="#007BFF"
-          />
         </View>
       </View>
   );
@@ -107,6 +104,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     width: '100%',
+  },
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 4,
+    color: 'black',
+    paddingRight: 30,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderColor: 'gray',
+    borderRadius: 8,
+    color: 'black',
+    paddingRight: 30,
   },
 });
 
