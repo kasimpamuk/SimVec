@@ -274,6 +274,7 @@ def image_embedding_and_storage(request):
         updated_images = request.FILES.getlist('updated_images')  # Get list of image files
         print("updated_images in insert: ", updated_images)
         # get the id of the last image in the csv file
+
         with open(user_dataset, 'r') as file:
             reader = csv.reader(file)
             data = list(reader)
@@ -305,11 +306,12 @@ def image_embedding_and_storage(request):
         #delete the temp csv file
         os.remove(temp_csv)
         #print("mr: ", mr)
+
         return JsonResponse({'message': 'Images added successfully', 'collection_name': collection_name})
-    
     elif operation == 'delete':
         updated_images = request.FILES.getlist('updated_images') 
         print("updated_images: ", updated_images)
+
         expr = " || ".join([f"path == '{path}'" for path in updated_images])
         mr = collection.delete(expr)
         #print("mr: ", mr)
@@ -321,3 +323,4 @@ def image_embedding_and_storage(request):
         df.to_csv(user_dataset, index=False)
 
         return JsonResponse({'message': 'Images deleted successfully', 'collection_name': collection_name})
+        
