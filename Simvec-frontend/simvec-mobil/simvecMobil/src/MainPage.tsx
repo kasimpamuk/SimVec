@@ -31,7 +31,7 @@ import {faArrowCircleUp} from '@fortawesome/free-solid-svg-icons/faArrowCircleUp
 import OverlayGuide from './UserGuide';
 
 function MainPage() {
-  const { t, i18n } = useTranslation();
+  const {t, i18n} = useTranslation();
   const [text, setText] = useState('');
   const [searchNumber, setSearchNumber] = useState(5);
   const [imageList, setImageList] = useState([]);
@@ -55,8 +55,6 @@ function MainPage() {
   const user_info = {
     username: 'alper',
   };
-
-  const navigation = useNavigation();
 
   const profileButtonRef = useRef(null);
   const settingsButtonRef = useRef(null);
@@ -177,14 +175,16 @@ function MainPage() {
       height: 300,
       cropping: true,
       includeBase64: true,
-    }).then(image => {
-      setImage({
-        uri: image.path,
-        base64: image.data,
+    })
+      .then(image => {
+        setImage({
+          uri: image.path,
+          base64: image.data,
+        });
+      })
+      .catch(error => {
+        console.error('ImagePicker Error: ', error);
       });
-    }).catch(error => {
-      console.error('ImagePicker Error: ', error);
-    });
   };
 
   const handleCaptureImage = () => {
@@ -193,14 +193,16 @@ function MainPage() {
       height: 300,
       cropping: true,
       includeBase64: true,
-    }).then(image => {
-      setImage({
-        uri: image.path,
-        base64: image.data,
+    })
+      .then(image => {
+        setImage({
+          uri: image.path,
+          base64: image.data,
+        });
+      })
+      .catch(error => {
+        console.error('ImagePicker Error: ', error);
       });
-    }).catch(error => {
-      console.error('ImagePicker Error: ', error);
-    });
   };
 
   const handleImageSubmit = async () => {
@@ -257,7 +259,7 @@ function MainPage() {
         const files = await RNFS.readDir(dir);
         console.log('files: ', files);
         const imageFiles = files.filter(file =>
-            ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
+          ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
         );
         console.log(imageFiles);
         imageNames = imageNames.concat(imageFiles.map(file => file.name));
@@ -347,7 +349,10 @@ function MainPage() {
       );
 
       if (!response2.ok) {
-        console.error('Synchronization request failed:', await response2.json());
+        console.error(
+          'Synchronization request failed:',
+          await response2.json(),
+        );
         throw new Error('Network response was not ok');
       }
 
@@ -356,10 +361,13 @@ function MainPage() {
       formData3.append('operation', 'delete');
       formData3.append('updated_images', JSON.stringify(imagesToDelete));
 
-      const response3 = await fetch('http://10.0.2.2:8000/api/synchronization', {
-        method: 'POST',
-        body: formData3,
-      });
+      const response3 = await fetch(
+        'http://10.0.2.2:8000/api/synchronization',
+        {
+          method: 'POST',
+          body: formData3,
+        },
+      );
       if (!response3.ok) {
         throw new Error('Network response was not ok');
       }
@@ -376,10 +384,13 @@ function MainPage() {
         });
       });
 
-      const response4 = await fetch('http://10.0.2.2:8000/api/synchronization', {
-        method: 'POST',
-        body: formData4,
-      });
+      const response4 = await fetch(
+        'http://10.0.2.2:8000/api/synchronization',
+        {
+          method: 'POST',
+          body: formData4,
+        },
+      );
       if (!response4.ok) {
         throw new Error('Network response was not ok');
       }
@@ -531,29 +542,28 @@ function MainPage() {
         </TouchableOpacity>
       </View>
 
-        <TouchableOpacity
-            ref={imagePickerRef}
-            style={[
-                styles.imagePicker,
-                currentStepIndex === 7 ? highlightedStyle : {},
-            ]}
-            onPress={handleImageChange}>
-          {image ? (
-              <Image source={{ uri: image.uri }} style={styles.imagePreview} />
-          ) : (
-              <Text style={styles.imagePickerText}>Tap to select an image</Text>
-          )}
-        </TouchableOpacity>
+      <TouchableOpacity
+        ref={imagePickerRef}
+        style={[
+          styles.imagePicker,
+          currentStepIndex === 7 ? highlightedStyle : {},
+        ]}
+        onPress={handleImageChange}>
+        {image ? (
+          <Image source={{uri: image.uri}} style={styles.imagePreview} />
+        ) : (
+          <Text style={styles.imagePickerText}>Tap to select an image</Text>
+        )}
+      </TouchableOpacity>
 
-        <TouchableOpacity
-            style={[styles.cameraButton, isButtonPressed ? styles.buttonHover : {}]}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            onPress={handleCaptureImage}
-        >
-          <FontAwesomeIcon icon={faCamera} />
-          <Text style={styles.buttonText}>Capture Image</Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.cameraButton, isButtonPressed ? styles.buttonHover : {}]}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={handleCaptureImage}>
+        <FontAwesomeIcon icon={faCamera} />
+        <Text style={styles.buttonText}>Capture Image</Text>
+      </TouchableOpacity>
 
       <View style={[styles.centerContainer]} ref={sliderRef}>
         {/* Center the button */}
@@ -598,19 +608,19 @@ function MainPage() {
         </TouchableOpacity>
       </View>
 
-        {imageList.length > 0 && (
-            <View style={styles.resultsContainer}>
-              <Text style={styles.subheading}>Returned Images:</Text>
-              {imageList.map((imgSrc, index) => (
-                  <Image
-                      key={index}
-                      source={{ uri: imgSrc }}
-                      style={styles.resultImage}
-                  />
-              ))}
-            </View>
-        )}
-      </ScrollView>
+      {imageList.length > 0 && (
+        <View style={styles.resultsContainer}>
+          <Text style={styles.subheading}>Returned Images:</Text>
+          {imageList.map((imgSrc, index) => (
+            <Image
+              key={index}
+              source={{uri: imgSrc}}
+              style={styles.resultImage}
+            />
+          ))}
+        </View>
+      )}
+    </ScrollView>
   );
 }
 
