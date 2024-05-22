@@ -1,6 +1,9 @@
 requests
 numpy
+pathlib
+Django
+pymilvus==2.2.5
 Pillow
-torch 
-towhee
-pymilvus
+pandas
+torch
+transformers

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "react-native-copilot": "^3.3.2",
+    "react-native-svg": "^15.2.0"
+  }
+}

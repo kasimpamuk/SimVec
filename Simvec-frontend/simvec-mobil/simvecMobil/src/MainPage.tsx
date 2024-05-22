@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import Slider from '@react-native-community/slider';
@@ -26,6 +26,9 @@ import RNFS from 'react-native-fs';
 import {toByteArray as btoa} from 'base64-js';
 import logo from './assets/simvec.png';
 import {faRotate} from '@fortawesome/free-solid-svg-icons';
+import {faBook} from '@fortawesome/free-solid-svg-icons/faBook';
+import {faArrowCircleUp} from '@fortawesome/free-solid-svg-icons/faArrowCircleUp';
+import OverlayGuide from './UserGuide';
 
 function MainPage() {
   const {t, i18n} = useTranslation();
@@ -41,7 +44,6 @@ function MainPage() {
   const [image, setImage] = useState<{uri: string; base64?: string} | null>(
     null,
   );
-  const navigation = useNavigation();
   const screenWidth = Dimensions.get('window').width; // Get the screen width
   const buttonWidth = screenWidth / 3;
   const data = {
@@ -51,6 +53,70 @@ function MainPage() {
 
   const user_info = {
     username: 'alper',
+  };
+
+  const navigation = useNavigation();
+
+  const profileButtonRef = useRef(null);
+  const settingsButtonRef = useRef(null);
+  const syncButtonRef = useRef(null);
+  const userGuideRef = useRef(null);
+  const textInputRef = useRef(null);
+  const sliderRef = useRef(null);
+  const textSubmitButton = useRef(null);
+
+  const imagePickerRef = useRef(null);
+  const imageSubmitButton = useRef(null);
+  const guideSteps = [
+    {
+      text: 'You can see your profile by clicking on this button',
+      ref: profileButtonRef,
+    },
+    {
+      text: 'You can reach your settings by clicking on here.',
+      ref: settingsButtonRef,
+    },
+    {
+      text: 'Press this button to synchronize your images with database.',
+      ref: syncButtonRef,
+    },
+    {text: 'Reach user guide anytime you need.', ref: userGuideRef},
+    {text: 'You can write your text here.', ref: textInputRef},
+    {
+      text: 'Use this slider to adjust the number of photos you want to retrieve.',
+      ref: sliderRef,
+    },
+    {
+      text: 'You can send your text query clicking on here.',
+      ref: textSubmitButton,
+    },
+
+    {text: 'Select an image to upload.', ref: imagePickerRef},
+    {text: 'Submit your image clicking by here.', ref: imageSubmitButton},
+    {text: 'You are ready to use SimVec!', ref: imageSubmitButton},
+  ];
+
+  const [currentElementPosition, setCurrentElementPosition] = useState(null);
+  const [showGuide, setShowGuide] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(-1);
+
+  const measureAndDisplayGuide = index => {
+    setCurrentStepIndex(0);
+    guideSteps[index]['ref'].current.measure(
+      (x, y, width, height, pageX, pageY) => {
+        setCurrentElementPosition({x: pageX, y: pageY, width, height});
+        setCurrentStepIndex(0);
+        setShowGuide(true);
+      },
+    );
+  };
+
+  const handleGuideNext = () => {
+    if (currentStepIndex < guideSteps.length - 1) {
+      setCurrentStepIndex(currentStepIndex + 1);
+    } else {
+      setShowGuide(false); // End the guide
+    }
   };
 
   const handleTextSubmit = async e => {
@@ -293,17 +359,27 @@ function MainPage() {
     setSearchNumber(Math.floor(value));
   };
 
+  const highlightedStyle = {backgroundColor: 'orange'};
+
   return (
     <ScrollView style={styles.container}>
+      <OverlayGuide
+        isVisible={showGuide}
+        onDismiss={handleGuideNext}
+        step={guideSteps[currentStepIndex]}
+        position={currentElementPosition}
+      />
       <View style={styles.header}>
         <Image source={logo} style={styles.logo} resizeMode="contain" />
       </View>
       {/* New view for settings and user profile buttons */}
       <View style={styles.row}>
         <TouchableOpacity
+          ref={profileButtonRef}
           style={[
             styles.buttonContainer,
-            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+            isButtonPressed ? styles.buttonHover : {},
+            currentStepIndex === 0 ? highlightedStyle : {}, // Apply hover style
           ]}
           onPressIn={handlePressIn} // Simulate hover
           onPressOut={handlePressOut} // Revert hover
@@ -314,9 +390,11 @@ function MainPage() {
         </TouchableOpacity>
 
         <TouchableOpacity
+          ref={settingsButtonRef}
           style={[
             styles.buttonContainer,
-            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+            isButtonPressed ? styles.buttonHover : {},
+            currentStepIndex === 1 ? highlightedStyle : {}, // Apply hover style
           ]}
           onPressIn={handlePressIn} // Simulate hover
           onPressOut={handlePressOut} // Revert hover
@@ -327,9 +405,11 @@ function MainPage() {
         </TouchableOpacity>
 
         <TouchableOpacity
+          ref={syncButtonRef}
           style={[
             styles.buttonContainer,
-            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+            isButtonPressed ? styles.buttonHover : {},
+            currentStepIndex === 2 ? highlightedStyle : {}, // Apply hover style
           ]}
           onPressIn={handlePressIn} // Simulate hover
           onPressOut={handlePressOut} // Revert hover
@@ -338,11 +418,32 @@ function MainPage() {
           <FontAwesomeIcon icon={faRotate} />
           <Text style={styles.buttonText}>Synchronize</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          ref={userGuideRef}
+          style={[
+            styles.buttonContainer,
+            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+            currentStepIndex === 3 ? highlightedStyle : {},
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={() => measureAndDisplayGuide(0)}
+          // Placeholder action
+        >
+          <FontAwesomeIcon icon={faBook} />
+          <Text style={styles.buttonText}>User Guide</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.textAreaContainer}>
+      <View
+        style={[
+          styles.textAreaContainer,
+          currentStepIndex === 4 ? highlightedStyle : {},
+        ]}>
         <Text style={styles.label}>Enter text for search:</Text>
         <TextInput
+          ref={textInputRef}
           style={styles.textArea}
           value={text}
           onChangeText={setText}
@@ -350,12 +451,13 @@ function MainPage() {
           multiline
         />
       </View>
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, ,]} ref={sliderRef}>
         {/* Center the button */}
         <View
           style={[
             {width: buttonWidth * 2}, // Set the button width
             styles.sliderContainer,
+            currentStepIndex === 5 ? highlightedStyle : {},
           ]}>
           <Text
             style={[
@@ -377,10 +479,12 @@ function MainPage() {
           />
         </View>
         <TouchableOpacity
+          ref={textSubmitButton}
           style={[
             {width: buttonWidth}, // Set the button width
             styles.submitButtonContainer,
-            isButtonPressed ? styles.submitButtonHover : {}, // Apply hover style
+            isButtonPressed ? styles.submitButtonHover : {},
+            currentStepIndex === 6 ? highlightedStyle : {}, // Apply hover style
           ]}
           onPressIn={handlePressIn} // Simulate hover
           onPressOut={handlePressOut} // Revert hover
@@ -390,7 +494,13 @@ function MainPage() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.imagePicker} onPress={handleImageChange}>
+      <TouchableOpacity
+        ref={imagePickerRef}
+        style={[
+          styles.imagePicker,
+          currentStepIndex === 7 ? highlightedStyle : {},
+        ]}
+        onPress={handleImageChange}>
         {image ? (
           <Image source={{uri: image.uri}} style={styles.imagePreview} />
         ) : (
@@ -398,7 +508,7 @@ function MainPage() {
         )}
       </TouchableOpacity>
 
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer]} ref={sliderRef}>
         {/* Center the button */}
         <View
           style={[
@@ -409,6 +519,7 @@ function MainPage() {
             style={[
               {width: buttonWidth * 2}, // Set the button width
               styles.label,
+              currentStepIndex === 5 ? highlightedStyle : {},
             ]}>
             Select Number of Results: {searchNumber}
           </Text>
@@ -425,10 +536,12 @@ function MainPage() {
           />
         </View>
         <TouchableOpacity
+          ref={imageSubmitButton}
           style={[
             {width: buttonWidth}, // Set the button width
             styles.submitButtonContainer,
-            isButtonPressed ? styles.submitButtonHover : {}, // Apply hover style
+            isButtonPressed ? styles.submitButtonHover : {},
+            currentStepIndex === 8 ? highlightedStyle : {}, // Apply hover style
           ]}
           onPressIn={handlePressIn} // Simulate hover
           onPressOut={handlePressOut} // Revert hover
@@ -455,6 +568,9 @@ function MainPage() {
 }
 
 const styles = StyleSheet.create({
+  guidedPart: {
+    color: '#f0f0f0',
+  },
   centerContainer: {
     backgroundColor: '#f0f0f0',
     padding: 20,
@@ -493,6 +609,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#f0f0f0',
     borderRadius: 5,
+    marginBottom: 10,
   },
 
   submitButtonContainer: {
