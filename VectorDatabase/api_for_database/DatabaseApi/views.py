@@ -319,9 +319,12 @@ def image_embedding_and_storage(request):
 
 
     collection_name = 'user_' + (str) (user_id) + '_gallery'
-    collection = initialize_milvus(collection_name, user_dataset)
+    collection = initialize_milvus(collection_name, None, model, processor)
     if operation == 'insert':
         updated_images = request.FILES.getlist('updated_images')  # Get list of image files
+        if len(updated_images)==0:
+            return JsonResponse({'message': 'Images added successfully', 'collection_name': collection_name})
+            
         print("updated_images in insert: ", updated_images)
         # get the id of the last image in the csv file
 
@@ -360,6 +363,10 @@ def image_embedding_and_storage(request):
         return JsonResponse({'message': 'Images added successfully', 'collection_name': collection_name})
     elif operation == 'delete':
         updated_images = request.FILES.getlist('updated_images')
+        if len(updated_images)==0:
+            return JsonResponse({'message': 'Images deleted successfully', 'collection_name': collection_name})
+        
+        
         print("updated_images: ", updated_images)
 
         expr = " || ".join([f"path == '{path}'" for path in updated_images])
