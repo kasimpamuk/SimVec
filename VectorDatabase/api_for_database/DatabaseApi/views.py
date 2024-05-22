@@ -14,7 +14,7 @@ from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Colle
 from PIL import Image
 import pandas as pd
 import torch
-from transformers import CLIPProcessor, CLIPModel
+from transformers import CLIPProcessor, CLIPModel, BlipModel, BlipProcessor, BlipForConditionalGeneration
 
 # Load the CLIP model and processor
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
@@ -72,58 +72,84 @@ def csv_maker(dataset_path, user_id):
 
 
 # Create milvus collection (delete first if exists)
-def create_milvus_collection(collection_name):
+def create_milvus_collection(collection_name, model):
     if utility.has_collection(collection_name):
         utility.drop_collection(collection_name)
-    
-    fields = [
-        FieldSchema(name='path', dtype=DataType.VARCHAR, description='path to image', max_length=500, 
-                    is_primary=True, auto_id=False),
-        FieldSchema(name='embedding', dtype=DataType.FLOAT_VECTOR, description='image embedding vectors', dim=DIM)
-    ]
-    schema = CollectionSchema(fields=fields, description='image search')
-    collection = Collection(name=collection_name, schema=schema)
+    if isinstance(model, CLIPModel):
+        fields = [
+            FieldSchema(name='path', dtype=DataType.VARCHAR, description='path to image', max_length=500, 
+                        is_primary=True, auto_id=False),
+            FieldSchema(name='embedding', dtype=DataType.FLOAT_VECTOR, description='image embedding vectors', dim=DIM)
+        ]
+        schema = CollectionSchema(fields=fields, description='image search')
+        collection = Collection(name=collection_name, schema=schema)
 
-    index_params = {
-        'metric_type': METRIC_TYPE,
-        'index_type': INDEX_TYPE,
-        'params': {"nlist": DIM}
-    }
-    collection.create_index(field_name='embedding', index_params=index_params)
-    return collection
+        index_params = {
+            'metric_type': METRIC_TYPE,
+            'index_type': INDEX_TYPE,
+            'params': {"nlist": DIM}
+        }
+        collection.create_index(field_name='embedding', index_params=index_params)
+        return collection
+    elif isinstance(model, BlipForConditionalGeneration):
+        fields = [
+            FieldSchema(name='path', dtype=DataType.VARCHAR, description='path to image', max_length=500, 
+                        is_primary=True, auto_id=False),
+            FieldSchema(name='embedding', dtype=DataType.FLOAT_VECTOR, description='image embedding vectors', dim=512)
+        ]
+        schema = CollectionSchema(fields=fields, description='image search')
+        collection = Collection(name=collection_name, schema=schema)
 
-def create_milvus_entities(user_dataset):
+        index_params = {
+            'metric_type': METRIC_TYPE,
+            'index_type': INDEX_TYPE,
+            'params': {"nlist": 512}
+        }
+        collection.create_index(field_name='embedding', index_params=index_params)
+        return collection
+
+def create_milvus_entities(user_dataset, model, processor):
     embeddings = []
     df = pd.read_csv(user_dataset)
     for index, row in df.iterrows():
-        image_path = row['path']  # Assuming the path is in a column named 'path'
+        image_path = row['path']  
         image = Image.open(image_path).convert('RGB')  # Ensure image is in RGB
         inputs = processor(images=image, return_tensors="pt")
-        image_features = model.get_image_features(**inputs)
-        # Ensure the tensor is detached from the computational graph before converting
-        embedding = image_features.squeeze(0).detach().numpy().tolist()
-        norm_embedding = embedding/np.linalg.norm(embedding)
-        embeddings.append(norm_embedding)
+
+        # Depending on the model used, the method to get embeddings will differ
+        if isinstance(model, CLIPModel):
+            image_features = model.get_image_features(**inputs)
+            embedding = image_features.squeeze(0).detach().numpy().tolist()
+            norm_embedding = embedding / np.linalg.norm(embedding)
+        elif isinstance(model, BlipForConditionalGeneration):
+            image_features = model.generate(**inputs, max_new_tokens=512)
+            embedding = image_features.squeeze(0).detach().numpy().tolist()
+            norm_embedding = embedding / np.linalg.norm(embedding)
+            if len(embedding) < 512:
+                norm_embedding = np.pad(norm_embedding, (0, 512 - len(norm_embedding)))
+            #print(len(norm_embedding))
+            embeddings.append(norm_embedding)
+        else:
+            raise ValueError("Unsupported model type")
 
     paths = df['path'].tolist()
-    entities = [[path for path in paths],
-                [embedding for embedding in embeddings]]
+    entities = [[path for path in paths], [embedding for embedding in embeddings]]
+    print("created entities")
     return entities
 
 
-def initialize_milvus(collection_name, image_folder_path):
+def initialize_milvus(collection_name, image_folder_path, model, processor):
     # Connect to Milvus service
     connections.connect(host=HOST, port=PORT)
 
     # display all the collections
     #print(utility.list_collections())
     #drop all collections
-    """
-    collections = utility.list_collections()
-    for collection in collections:
-        utility.drop_collection(collection)
-    """
-    
+    #collections = utility.list_collections()
+    #for collection in collections:
+    #    utility.drop_collection(collection)
+    #utility.drop_collection("userblippgallery")
+
     # Check if the collection already exists
     if(utility.has_collection(collection_name)):
         collection = Collection(collection_name)
@@ -131,9 +157,8 @@ def initialize_milvus(collection_name, image_folder_path):
     
     else:
         print(f"Creating new collection: {collection_name}")
-        collection = create_milvus_collection(collection_name)
-        print(image_folder_path)
-        entities = create_milvus_entities(image_folder_path)
+        collection = create_milvus_collection(collection_name, model)
+        entities = create_milvus_entities(image_folder_path, model, processor)
         mr = collection.insert(entities)
         print("mr: ", mr)
 
@@ -142,22 +167,32 @@ def initialize_milvus(collection_name, image_folder_path):
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_collection_for_new_user(request):
-    
-    # request decoding
     data = json.loads(request.body)
     user_id = data.get('user_id')
-    # get the path of the image folder of the user
+    #user_id = "blipp"
     image_folder_path = data.get('image_folder_path')
-    print(image_folder_path)
-    # Create a collection for the new user
-    print((str) (user_id))
-    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    model_option = data.get('model_option', 'clip')  # Default to 'clip' if not specified
+
+    # Load the appropriate model
+    if model_option == 'clip':
+        model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
+        processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
+    elif model_option == 'blip':
+        model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")  
+        processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+        print("Using BLIP model")
+    else:
+        return JsonResponse({'error': 'Invalid model option'}, status=400)
+
+    # Rest of your existing code to create collection
+    collection_name = 'user' + str(user_id) + 'gallery'
     user_dataset = csv_maker(image_folder_path, user_id)
     print(user_dataset)
-    collection = initialize_milvus(collection_name, user_dataset)
+    collection = initialize_milvus(collection_name, user_dataset, model, processor)  
     collection.load()
 
     return JsonResponse({'message': 'Collection created successfully', 'collection_name': collection_name})
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -168,11 +203,17 @@ def image_based_search(request):
     query_image_path = data.get('input')
     print(query_image_path)
     #user_id = data.get('user_id')
-    user_id = "alper"
-    # Connect to Milvus service
-    collection_name = 'user_' + (str) (user_id) + '_gallery'
-    #collection_name = 'user_2_gallery'
-    print(collection_name)
+    user_id = "blipp"
+    model_option = data.get('model_option', 'clip')  # Default to 'clip' if not specified
+    collection_name = 'user' + str(user_id) + 'gallery'
+    model = None
+    if model_option == 'clip':
+            model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
+            processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
+    elif model_option == 'blip':
+        model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+        processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+
     collection = initialize_milvus(collection_name, None)
     collection.load()
     try:    
@@ -215,14 +256,27 @@ def text_based_search(request):
     data = json.loads(request.body)
     topk = data.get('topk')
     query_text = data.get('input')
-    user_id = "alper"
+    user_id = data.get('user_id')
+    #user_id = "blipp"
+    model_option = data.get('model_option', 'clip')  # Default to 'clip' if not specified
+    collection_name = 'user' + str(user_id) + 'gallery'
+    model = None
+    if model_option == 'clip':
+            model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
+            processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
+    elif model_option == 'blip':
+        model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+        processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+    
     # Connect to Milvus service
-    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    
     #collection_name = 'user_2_gallery'
-    collection = initialize_milvus(collection_name, None) 
+    print(collection_name)
+    collection = initialize_milvus(collection_name, None, model, processor) 
     collection.load()
 
     try:
+        
         text_inputs = processor(text=query_text, return_tensors="pt", padding=True, truncation=True, max_length=77)
         query_text_features = model.get_text_features(**text_inputs)
         text_embedding = query_text_features.squeeze(0).detach().numpy().tolist()
@@ -265,7 +319,7 @@ def image_embedding_and_storage(request):
     user_dataset = 'user_datasets/image_paths_' + (str) (user_id) + '.csv'
 
 
-    collection_name = 'user_' + (str) (user_id) + '_gallery'
+    collection_name = 'user' + (str) (user_id) + 'gallery'
     collection = initialize_milvus(collection_name, user_dataset)
     if operation == 'insert':
         # get the id of the last image in the csv file

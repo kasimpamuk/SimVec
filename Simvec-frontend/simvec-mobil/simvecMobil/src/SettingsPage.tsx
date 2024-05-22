@@ -15,10 +15,10 @@ function SettingsPage({ navigation }) {
 
   // Function to handle navigation back to the main page or user profile
   const handleBackToProfile = () => {
-    navigation.navigate('UserProfile');
+    navigation.navigate('User'); // Adjust this according to your actual route name
   };
 
-  // Function to toggle between English and French
+  // Function to toggle between languages
   const toggleLanguage = () => {
     let newLang;
     switch (i18n.language) {
@@ -37,42 +37,43 @@ function SettingsPage({ navigation }) {
     i18n.changeLanguage(newLang);
   };
 
-
   return (
-      <View style={styles.container}>
-        <Text style={styles.title}>{t('Settings')}</Text>
-
-        <View style={styles.setting}>
-          <Text style={styles.settingText}>{t('Enable Notifications')}</Text>
-          <Switch
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-              thumbColor={isNotificationsEnabled ? "#f5dd4b" : "#f4f3f4"}
-              ios_backgroundColor="#3e3e3e"
-              onValueChange={toggleNotifications}
-              value={isNotificationsEnabled}
-          />
-        </View>
-
-        <View style={styles.setting}>
-          <Text style={styles.settingText}>{t('Dark Theme')}</Text>
-          <Switch
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-              thumbColor={isDarkTheme ? "#f5dd4b" : "#f4f3f4"}
-              ios_backgroundColor="#3e3e3e"
-              onValueChange={toggleTheme}
-              value={isDarkTheme}
-          />
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <Button title={t('Back to Profile')} onPress={handleBackToProfile} color="#ff6347" />
-          <Button
-              title={t('Change Language')}
-              onPress={toggleLanguage}
-              color="#007BFF"
-          />
-        </View>
+    <View style={styles.container}>
+      <Text style={styles.title}>{t('Settings')}</Text>
+      <View style={styles.setting}>
+        <Text style={styles.settingText}>{t('Enable Notifications')}</Text>
+        <Switch
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={isNotificationsEnabled ? "#f5dd4b" : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleNotifications}
+            value={isNotificationsEnabled}
+        />
       </View>
+      <View style={styles.setting}>
+        <Text style={styles.settingText}>{t('Dark Theme')}</Text>
+        <Switch
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={isDarkTheme ? "#f5dd4b" : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleTheme}
+            value={isDarkTheme}
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button title={t('Back to Profile')} onPress={handleBackToProfile} color="#ff6347" />
+        <Button
+            title={t('Change Language')}
+            onPress={toggleLanguage}
+            color="#007BFF"
+        />
+        <Button
+            title={t('FAQ')}
+            onPress={() => navigation.navigate('FAQ')} // Ensure this matches your FAQ page route name
+            color="#00ced1"
+        />
+      </View>
+    </View>
   );
 }
 

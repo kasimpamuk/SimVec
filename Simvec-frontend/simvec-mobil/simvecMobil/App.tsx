@@ -6,9 +6,12 @@ import MainPage from './src/MainPage'; // Make sure MainPage is adapted for Reac
 import RegisterPage from './src/RegisterPage'; // Make sure RegisterPage is adapted for React Native
 import UserPage from './src/UserPage';
 import SettingsPage from './src/SettingsPage';
+
 import UserGuide from './src/UserGuide.tsx';
 import './src/i18n.tsx';
 import {useTranslation} from 'react-i18next';
+import FaqPage from './src/FaqPage';
+
 
 const Stack = createNativeStackNavigator();
 function App() {
@@ -45,6 +48,12 @@ function App() {
           component={UserGuide}
           options={{headerShown: true}}
         />
+        <Stack.Screen
+             name="FAQ"
+             component={FaqPage}
+             options={{headerShown: true}}
+        />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
