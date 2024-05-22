@@ -145,7 +145,6 @@ function MainPage() {
       );
       setImageList(urls);
       console.log(imageList);
-      console.error(urls);
     } catch (error) {
       console.error('Error processing text:', error);
       Alert.alert('Error', 'Error processing text');

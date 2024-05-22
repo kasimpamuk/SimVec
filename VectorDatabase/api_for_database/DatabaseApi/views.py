@@ -203,9 +203,9 @@ def image_based_search(request):
     query_image_path = data.get('input')
     print(query_image_path)
     #user_id = data.get('user_id')
-    user_id = "blipp"
+    user_id = "alper"
     model_option = data.get('model_option', 'clip')  # Default to 'clip' if not specified
-    collection_name = 'user' + str(user_id) + 'gallery'
+    collection_name = 'user_' + str(user_id) + '_gallery'
     model = None
     if model_option == 'clip':
             model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
@@ -214,7 +214,7 @@ def image_based_search(request):
         model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
         processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 
-    collection = initialize_milvus(collection_name, None)
+    collection = initialize_milvus(collection_name, None, model, processor)
     collection.load()
     try:    
         query_image = Image.open(query_image_path).convert('RGB')  
@@ -256,10 +256,10 @@ def text_based_search(request):
     data = json.loads(request.body)
     topk = data.get('topk')
     query_text = data.get('input')
-    user_id = data.get('user_id')
-    #user_id = "blipp"
+    #user_id = data.get('user_id')
+    user_id = "alper"
     model_option = data.get('model_option', 'clip')  # Default to 'clip' if not specified
-    collection_name = 'user' + str(user_id) + 'gallery'
+    collection_name = 'user_' + str(user_id) + '_gallery'
     model = None
     if model_option == 'clip':
             model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
