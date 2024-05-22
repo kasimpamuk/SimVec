@@ -23,5 +23,8 @@
   "Enable Notifications": "Activer les Notifications",
   "Dark Theme": "Thème Sombre",
   "Back to Profile": "Retour au Profil",
-   "Change Language": "Changer de Langue",
+  "Change Language": "Changer de Langue",
+  "Select a Model": "Sélectionnez un modèle",
+  "Standard Version (High accuracy)": "Version standard (Haute précision)",
+  "Advanced Version (Better in complex queries)": "Version avancée (meilleure dans les requêtes complexes)"
 }
