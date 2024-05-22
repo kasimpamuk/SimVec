@@ -8,6 +8,7 @@ import UserPage from './src/UserPage';
 import SettingsPage from './src/SettingsPage';
 import   './src/i18n.tsx';
 import { useTranslation } from 'react-i18next';
+import FaqPage from './src/FaqPage';
 
 const Stack = createNativeStackNavigator();
 function App() {
@@ -39,6 +40,12 @@ function App() {
              component={SettingsPage}
              options={{headerShown: true}}
         />
+        <Stack.Screen
+             name="FAQ"
+             component={FaqPage}
+             options={{headerShown: true}}
+        />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
