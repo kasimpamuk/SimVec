@@ -32,7 +32,9 @@ public class AuthenticationController {
 	@PostMapping("/login")
 	public String login(@RequestBody AuthRequest authRequest) {
 		log.info(String.format("Login: %s", authRequest.toString()));
-		return authenticationService.login(authRequest);
+		String a = authenticationService.login(authRequest);
+		System.out.println("Hewr:" + a);
+		return a;
 	}
 
 }

@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {launchImageLibrary} from 'react-native-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {faUser, faCamera} from '@fortawesome/free-solid-svg-icons';
 import {faGear} from '@fortawesome/free-solid-svg-icons/faGear';
 import RNFS from 'react-native-fs';
@@ -126,12 +127,14 @@ function MainPage() {
     }
 
     try {
+      const token = await AsyncStorage.getItem('userToken');
       const response = await fetch(
         'http://10.0.2.2:8080/api/text-based-search',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(data),
         },
@@ -218,12 +221,14 @@ function MainPage() {
       uri: image.uri,
     });
     try {
+      const token = await AsyncStorage.getItem('userToken');
       const response = await fetch(
         `http://10.0.2.2:8080/api/image-based-search/${searchNumber}`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
           },
           body: formData,
         },
@@ -283,6 +288,8 @@ function MainPage() {
     console.log('Sending request to synchronize images');
 
     try {
+      const token = await AsyncStorage.getItem('userToken');
+
       const formData1 = new FormData();
       formData1.append('username', user_info.username);
 
@@ -292,6 +299,7 @@ function MainPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
           },
           body: formData1,
         },
@@ -370,6 +378,7 @@ function MainPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
           },
           body: formData2,
         },
@@ -392,6 +401,10 @@ function MainPage() {
         'http://10.0.2.2:8000/api/synchronization',
         {
           method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+          },
           body: formData3,
         },
       );

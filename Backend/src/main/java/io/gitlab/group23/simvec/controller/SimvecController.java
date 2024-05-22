@@ -5,17 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gitlab.group23.simvec.model.SimvecUser;
 import io.gitlab.group23.simvec.model.UserProfileInfo;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
-import io.gitlab.group23.simvec.service.ImagePopulationService;
 import io.gitlab.group23.simvec.service.TranslateText;
 import io.gitlab.group23.simvec.service.UserService;
-import io.gitlab.group23.simvec.service.VectorDatabaseService;
-import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
 import io.gitlab.group23.simvec.service.ImageSynchronizationService;
-import io.gitlab.group23.simvec.service.ImagePopulationService;
 import io.gitlab.group23.simvec.service.TranslateText;
 import io.gitlab.group23.simvec.service.UserService;
-import io.gitlab.group23.simvec.service.VectorDatabaseService;
-import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
 import io.gitlab.group23.simvec.service.*;
 import io.gitlab.group23.simvec.service.authentication.jwt.AuthenticationService;
 import io.gitlab.group23.simvec.service.vectordb.ImagePopulationService;
@@ -24,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
@@ -65,9 +60,9 @@ public class SimvecController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<SimvecUser> registerUser(@Validated @RequestBody SimvecUser simvecUser) {
+	public ResponseEntity<String> registerUser(@Validated @RequestBody SimvecUser simvecUser) {
 		//System.out.println("hello");
-		return ResponseEntity.ok(authenticationService.registerUser(simvecUser));
+		return ResponseEntity.ok(authenticationService.register(simvecUser));
 	}
 
 
@@ -93,11 +88,6 @@ public class SimvecController {
 		vectorDatabaseRequest.setInput(translatedText);
 		List<byte[]> images = vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest);
 		return ResponseEntity.ok(images);
-	}
-
-	@GetMapping("/verify")
-	public String verifyUser(@RequestParam("code") String token) {
-		return authenticationService.verifyUserEmail(token);
 	}
 
 	@PostMapping("/transfer-images")
