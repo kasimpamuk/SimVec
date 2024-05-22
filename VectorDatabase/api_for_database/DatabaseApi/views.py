@@ -77,7 +77,7 @@ def create_milvus_collection(collection_name, model):
         utility.drop_collection(collection_name)
     if isinstance(model, CLIPModel):
         fields = [
-            FieldSchema(name='path', dtype=DataType.VARCHAR, description='path to image', max_length=500, 
+            FieldSchema(name='path', dtype=DataType.VARCHAR, description='path to image', max_length=500,
                         is_primary=True, auto_id=False),
             FieldSchema(name='embedding', dtype=DataType.FLOAT_VECTOR, description='image embedding vectors', dim=DIM)
         ]
@@ -93,7 +93,7 @@ def create_milvus_collection(collection_name, model):
         return collection
     elif isinstance(model, BlipForConditionalGeneration):
         fields = [
-            FieldSchema(name='path', dtype=DataType.VARCHAR, description='path to image', max_length=500, 
+            FieldSchema(name='path', dtype=DataType.VARCHAR, description='path to image', max_length=500,
                         is_primary=True, auto_id=False),
             FieldSchema(name='embedding', dtype=DataType.FLOAT_VECTOR, description='image embedding vectors', dim=512)
         ]
@@ -112,7 +112,7 @@ def create_milvus_entities(user_dataset, model, processor):
     embeddings = []
     df = pd.read_csv(user_dataset)
     for index, row in df.iterrows():
-        image_path = row['path']  
+        image_path = row['path']
         image = Image.open(image_path).convert('RGB')  # Ensure image is in RGB
         inputs = processor(images=image, return_tensors="pt")
 
@@ -133,8 +133,8 @@ def create_milvus_entities(user_dataset, model, processor):
             raise ValueError("Unsupported model type")
 
     paths = df['path'].tolist()
-    entities = [[path for path in paths], [embedding for embedding in embeddings]]
-    print("created entities")
+    entities = [[path for path in paths],
+                [embedding for embedding in embeddings]]
     return entities
 
 
@@ -148,8 +148,7 @@ def initialize_milvus(collection_name, image_folder_path, model, processor):
     #collections = utility.list_collections()
     #for collection in collections:
     #    utility.drop_collection(collection)
-    #utility.drop_collection("userblippgallery")
-
+    
     # Check if the collection already exists
     if(utility.has_collection(collection_name)):
         collection = Collection(collection_name)
@@ -167,9 +166,10 @@ def initialize_milvus(collection_name, image_folder_path, model, processor):
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_collection_for_new_user(request):
+    # request decoding
     data = json.loads(request.body)
     user_id = data.get('user_id')
-    #user_id = "blipp"
+    # get the path of the image folder of the user
     image_folder_path = data.get('image_folder_path')
     model_option = data.get('model_option', 'clip')  # Default to 'clip' if not specified
 
@@ -178,7 +178,7 @@ def create_collection_for_new_user(request):
         model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
         processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
     elif model_option == 'blip':
-        model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")  
+        model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
         processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
         print("Using BLIP model")
     else:
@@ -188,11 +188,10 @@ def create_collection_for_new_user(request):
     collection_name = 'user' + str(user_id) + 'gallery'
     user_dataset = csv_maker(image_folder_path, user_id)
     print(user_dataset)
-    collection = initialize_milvus(collection_name, user_dataset, model, processor)  
+    collection = initialize_milvus(collection_name, user_dataset, model, processor)
     collection.load()
 
     return JsonResponse({'message': 'Collection created successfully', 'collection_name': collection_name})
-
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -238,7 +237,7 @@ def image_based_search(request):
         filtered_results = []
         for result in results[0]:
             if (result.distance) < (distance_threshold):
-                print(result.distance)
+                #print(result.distance)
                 formatted_id = "/" + result.id[1:]  
                 filtered_results.append(formatted_id)
 
@@ -267,16 +266,16 @@ def text_based_search(request):
     elif model_option == 'blip':
         model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
         processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-    
+
     # Connect to Milvus service
-    
+
     #collection_name = 'user_2_gallery'
     print(collection_name)
-    collection = initialize_milvus(collection_name, None, model, processor) 
+    collection = initialize_milvus(collection_name, None, model, processor)
     collection.load()
 
     try:
-        
+
         text_inputs = processor(text=query_text, return_tensors="pt", padding=True, truncation=True, max_length=77)
         query_text_features = model.get_text_features(**text_inputs)
         text_embedding = query_text_features.squeeze(0).detach().numpy().tolist()
@@ -297,7 +296,7 @@ def text_based_search(request):
         filtered_results = []
         for result in results[0]:
             if (result.distance) < (distance_threshold):
-                print(result.distance)
+                #print(result.distance)
                 formatted_id = "/" + result.id[1:]  
                 filtered_results.append(formatted_id)
 
@@ -311,17 +310,19 @@ def text_based_search(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def image_embedding_and_storage(request):
-    data = json.loads(request.body)
-    user_id = data.get('user_id')
-    updated_images = data.get('updated_images')
-    operation = data.get('operation')
+    #data = json.loads(request.body)
+    user_id = request.POST.get('user_id')
+
+    operation = request.POST.get('operation')
     # I need to find the user's csv file and collection, and update them with the new images
     user_dataset = 'user_datasets/image_paths_' + (str) (user_id) + '.csv'
 
 
-    collection_name = 'user' + (str) (user_id) + 'gallery'
+    collection_name = 'user_' + (str) (user_id) + '_gallery'
     collection = initialize_milvus(collection_name, user_dataset)
     if operation == 'insert':
+        updated_images = request.FILES.getlist('updated_images')  # Get list of image files
+        print("updated_images in insert: ", updated_images)
         # get the id of the last image in the csv file
         with open(user_dataset, 'r') as file:
             reader = csv.reader(file)
@@ -333,6 +334,7 @@ def image_embedding_and_storage(request):
         last_id = (int) (last_id) + 1
         temp_csv = 'temp_image_paths_' + (str) (user_id) + '.csv'
         with open(temp_csv, 'w', newline='') as file:
+
             writer = csv.writer(file)
             writer.writerow(['id', 'path'])
             for image in updated_images:
@@ -356,6 +358,8 @@ def image_embedding_and_storage(request):
         return JsonResponse({'message': 'Images added successfully', 'collection_name': collection_name})
     
     elif operation == 'delete':
+        updated_images = request.FILES.getlist('updated_images')
+        print("updated_images: ", updated_images)
         expr = " || ".join([f"path == '{path}'" for path in updated_images])
         mr = collection.delete(expr)
         #print("mr: ", mr)

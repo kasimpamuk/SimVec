@@ -20,10 +20,10 @@ import {
 } from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {faUser} from '@fortawesome/free-solid-svg-icons/faUser';
+import {faUser, faCamera} from '@fortawesome/free-solid-svg-icons';
 import {faGear} from '@fortawesome/free-solid-svg-icons/faGear';
 import RNFS from 'react-native-fs';
-import {toByteArray as btoa} from 'base64-js';
+import ImageCropPicker from 'react-native-image-crop-picker';
 import logo from './assets/simvec.png';
 import {faRotate} from '@fortawesome/free-solid-svg-icons';
 import {faBook} from '@fortawesome/free-solid-svg-icons/faBook';
@@ -31,7 +31,7 @@ import {faArrowCircleUp} from '@fortawesome/free-solid-svg-icons/faArrowCircleUp
 import OverlayGuide from './UserGuide';
 
 function MainPage() {
-  const {t, i18n} = useTranslation();
+  const { t, i18n } = useTranslation();
   const [text, setText] = useState('');
   const [searchNumber, setSearchNumber] = useState(5);
   const [imageList, setImageList] = useState([]);
@@ -44,6 +44,7 @@ function MainPage() {
   const [image, setImage] = useState<{uri: string; base64?: string} | null>(
     null,
   );
+  const navigation = useNavigation();
   const screenWidth = Dimensions.get('window').width; // Get the screen width
   const buttonWidth = screenWidth / 3;
   const data = {
@@ -150,6 +151,7 @@ function MainPage() {
       Alert.alert('Error', 'Error processing text');
     }
   };
+
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible); // Toggle modal visibility
     if (isModalVisible) {
@@ -168,25 +170,36 @@ function MainPage() {
       }).start(); // Slide-in animation
     }
   };
-  const handleImageChange = () => {
-    const options = {
-      mediaType: 'photo',
-      quality: 1,
-      includeBase64: true,
-    };
 
-    launchImageLibrary(options, response => {
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
-      } else {
-        const source = {
-          uri: response.assets![0].uri,
-          base64: response.assets![0].base64,
-        };
-        setImage(source);
-      }
+  const handleImageChange = () => {
+    ImageCropPicker.openPicker({
+      width: 300,
+      height: 300,
+      cropping: true,
+      includeBase64: true,
+    }).then(image => {
+      setImage({
+        uri: image.path,
+        base64: image.data,
+      });
+    }).catch(error => {
+      console.error('ImagePicker Error: ', error);
+    });
+  };
+
+  const handleCaptureImage = () => {
+    ImageCropPicker.openCamera({
+      width: 300,
+      height: 300,
+      cropping: true,
+      includeBase64: true,
+    }).then(image => {
+      setImage({
+        uri: image.path,
+        base64: image.data,
+      });
+    }).catch(error => {
+      console.error('ImagePicker Error: ', error);
     });
   };
 
@@ -197,10 +210,9 @@ function MainPage() {
     }
     const formData = new FormData(); // Create a FormData object
     formData.append('file', {
-      // Append the image data
-      name: 'uploaded_image.jpg', // Filename
-      type: 'image/jpeg', // MIME type
-      uri: image.uri, // Image URI
+      name: 'uploaded_image.jpg',
+      type: 'image/jpeg',
+      uri: image.uri,
     });
     try {
       const response = await fetch(
@@ -245,7 +257,7 @@ function MainPage() {
         const files = await RNFS.readDir(dir);
         console.log('files: ', files);
         const imageFiles = files.filter(file =>
-          ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
+            ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
         );
         console.log(imageFiles);
         imageNames = imageNames.concat(imageFiles.map(file => file.name));
@@ -261,7 +273,6 @@ function MainPage() {
     console.log('Sending request to synchronize images');
 
     try {
-      // Step 1: Get backend image files
       const formData1 = new FormData();
       formData1.append('username', user_info.username);
 
@@ -281,7 +292,6 @@ function MainPage() {
       const backendImageFiles = await response1.json(); // Image names from backend
       const galleryImageFiles = await getGalleryImageNames(); // Image names from gallery
 
-      // Step 2: Find images to delete from backend
       const imagesToDelete = backendImageFiles.filter(
         img => !galleryImageFiles.includes(img),
       );
@@ -296,12 +306,9 @@ function MainPage() {
       );
 
       console.log('Images that need to be added to backend: ', imagesToAdd);
-      // Create form-data for the second request
+
       const formData2 = new FormData();
-
       formData2.append('username', user_info.username);
-
-      // Step 4: Add images to delete as serialized JSON
       formData2.append('images_to_delete', JSON.stringify(imagesToDelete));
 
       // Step 5: Add actual image files for images to be added
@@ -340,14 +347,45 @@ function MainPage() {
       );
 
       if (!response2.ok) {
-        console.error(
-          'Synchronization request failed:',
-          await response2.json(),
-        );
+        console.error('Synchronization request failed:', await response2.json());
         throw new Error('Network response was not ok');
       }
 
-      console.log('Synchronization completed successfully');
+      const formData3 = new FormData();
+      formData3.append('user_id', user_info.username);
+      formData3.append('operation', 'delete');
+      formData3.append('updated_images', JSON.stringify(imagesToDelete));
+
+      const response3 = await fetch('http://10.0.2.2:8000/api/synchronization', {
+        method: 'POST',
+        body: formData3,
+      });
+      if (!response3.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const formData4 = new FormData();
+      formData4.append('user_id', user_info.username);
+      formData4.append('operation', 'insert');
+
+      imageFilesToUpload.forEach(image => {
+        formData4.append('updated_images', {
+          uri: image.uri,
+          name: image.name,
+          type: image.type,
+        });
+      });
+
+      const response4 = await fetch('http://10.0.2.2:8000/api/synchronization', {
+        method: 'POST',
+        body: formData4,
+      });
+      if (!response4.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const result = await response4.json();
+      console.log('Synchronization completed successfully', result);
     } catch (error) {
       console.error('Error during synchronization:', error);
       Alert.alert('Error', 'Failed to synchronize images');
@@ -493,19 +531,29 @@ function MainPage() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity
-        ref={imagePickerRef}
-        style={[
-          styles.imagePicker,
-          currentStepIndex === 7 ? highlightedStyle : {},
-        ]}
-        onPress={handleImageChange}>
-        {image ? (
-          <Image source={{uri: image.uri}} style={styles.imagePreview} />
-        ) : (
-          <Text style={styles.imagePickerText}>Tap to select an image</Text>
-        )}
-      </TouchableOpacity>
+        <TouchableOpacity
+            ref={imagePickerRef}
+            style={[
+                styles.imagePicker,
+                currentStepIndex === 7 ? highlightedStyle : {},
+            ]}
+            onPress={handleImageChange}>
+          {image ? (
+              <Image source={{ uri: image.uri }} style={styles.imagePreview} />
+          ) : (
+              <Text style={styles.imagePickerText}>Tap to select an image</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+            style={[styles.cameraButton, isButtonPressed ? styles.buttonHover : {}]}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            onPress={handleCaptureImage}
+        >
+          <FontAwesomeIcon icon={faCamera} />
+          <Text style={styles.buttonText}>Capture Image</Text>
+        </TouchableOpacity>
 
       <View style={[styles.centerContainer]} ref={sliderRef}>
         {/* Center the button */}
@@ -550,19 +598,19 @@ function MainPage() {
         </TouchableOpacity>
       </View>
 
-      {imageList.length > 0 && (
-        <View style={styles.resultsContainer}>
-          <Text style={styles.subheading}>Returned Images:</Text>
-          {imageList.map((imgSrc, index) => (
-            <Image
-              key={index}
-              source={{uri: imgSrc}}
-              style={styles.resultImage}
-            />
-          ))}
-        </View>
-      )}
-    </ScrollView>
+        {imageList.length > 0 && (
+            <View style={styles.resultsContainer}>
+              <Text style={styles.subheading}>Returned Images:</Text>
+              {imageList.map((imgSrc, index) => (
+                  <Image
+                      key={index}
+                      source={{ uri: imgSrc }}
+                      style={styles.resultImage}
+                  />
+              ))}
+            </View>
+        )}
+      </ScrollView>
   );
 }
 
@@ -610,7 +658,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 10,
   },
-
   submitButtonContainer: {
     justifyContent: 'center',
     display: 'flex',
@@ -619,11 +666,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#75A47F',
     borderRadius: 5,
   },
-
   buttonHover: {
     backgroundColor: '#dcdcdc', // Background color on press (hover effect)
   },
-
   submitButtonHover: {
     backgroundColor: '#BACD92', // Background color on press (hover effect)
   },
@@ -687,6 +732,16 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 10,
+  },
+  cameraButton: {
+    marginBottom: 20,
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+    flexDirection: 'row',
   },
   resultsContainer: {
     marginTop: 20,
