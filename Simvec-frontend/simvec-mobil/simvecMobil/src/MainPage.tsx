@@ -211,6 +211,7 @@ function MainPage() {
       return;
     }
     const formData = new FormData(); // Create a FormData object
+    console.log('image.uri in handleImageSubmit: ', image.uri);
     formData.append('file', {
       name: 'uploaded_image.jpg',
       type: 'image/jpeg',
@@ -252,7 +253,8 @@ function MainPage() {
     console.log('picturesPath', picturesPath);
 
     let imageNames: any[] = [];
-
+    let imagePaths: any[] = [];
+    let imageDict = {};
     for (const dir of directories) {
       console.log(dir);
       try {
@@ -261,14 +263,20 @@ function MainPage() {
         const imageFiles = files.filter(file =>
           ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
         );
-        console.log(imageFiles);
+        console.log('imageFiles: ', imageFiles);
+        //imageNames = imageNames.concat(imageFiles.map(file => file.name));
         imageNames = imageNames.concat(imageFiles.map(file => file.name));
+        imagePaths = imagePaths.concat(imageFiles.map(file => file.path));
+        // Store each image name and path in the dictionary
+        imageFiles.forEach(file => {
+          imageDict[file.name] = file.path;
+        });
       } catch (error) {
         console.error(`Error reading directory ${dir}:`, error);
       }
     }
-    console.log(imageNames);
-    return imageNames;
+    console.log('Image dictionary:', imageDict);
+    return imageDict;
   };
 
   const synchronizationHandler = async () => {
@@ -282,6 +290,9 @@ function MainPage() {
         'http://10.0.2.2:8080/api/synchronize-images',
         {
           method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
           body: formData1,
         },
       );
@@ -292,10 +303,13 @@ function MainPage() {
       }
 
       const backendImageFiles = await response1.json(); // Image names from backend
-      const galleryImageFiles = await getGalleryImageNames(); // Image names from gallery
+      const galleryImageFilesPaths = await getGalleryImageNames(); // Image names from gallery
+
+      // Convert the dictionary keys to an array of image names
+      const galleryImageNames = Object.keys(galleryImageFilesPaths);
 
       const imagesToDelete = backendImageFiles.filter(
-        img => !galleryImageFiles.includes(img),
+        img => !galleryImageNames.includes(img),
       );
 
       console.log(
@@ -303,7 +317,7 @@ function MainPage() {
         imagesToDelete,
       );
       // Step 3: Find images to add to backend
-      const imagesToAdd = galleryImageFiles.filter(
+      const imagesToAdd = galleryImageNames.filter(
         img => !backendImageFiles.includes(img),
       );
 
@@ -314,29 +328,39 @@ function MainPage() {
       formData2.append('images_to_delete', JSON.stringify(imagesToDelete));
 
       // Step 5: Add actual image files for images to be added
+      /*const imageFile = await RNFS.readFile(
+          RNFS.PicturesDirectoryPath + '/' + imageName,
+          'base64',
+        ); // Read image as base64*/
+
       const imageFilesToUpload = []; // This array will hold image files to be uploaded
       for (const imageName of imagesToAdd) {
         // Assuming you have a way to retrieve the actual image file by name
         const imageFile = await RNFS.readFile(
-          RNFS.PicturesDirectoryPath + '/' + imageName,
+          galleryImageFilesPaths[imageName],
           'base64',
-        ); // Read image as base64
+        );
+        console.log(
+          'galleryImageFilesPaths[imageName]',
+          galleryImageFilesPaths[imageName],
+        );
         imageFilesToUpload.push({
-          uri: 'data:image/jpeg;base64,' + imageFile, // Data URI format
+          uri: 'file://' + galleryImageFilesPaths[imageName], // Data URI format
           name: imageName, // Filename
           type: 'image/jpeg', // MIME type
         });
       }
 
-      console.log('imageFilesToUpload: ', imageFilesToUpload);
+      //console.log('imageFilesToUpload: ', imageFilesToUpload);
       console.log('imageFilesTodelete: ', imagesToDelete);
 
       imageFilesToUpload.forEach(image => {
         formData2.append('images_to_add', {
           uri: image.uri,
           name: image.name,
-          type: 'image/jpeg',
+          type: image.type,
         });
+        console.log(image);
       });
 
       // Send the second request with form-data
@@ -344,6 +368,9 @@ function MainPage() {
         'http://10.0.2.2:8080/api/add-delete-images',
         {
           method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
           body: formData2,
         },
       );
@@ -353,7 +380,7 @@ function MainPage() {
           'Synchronization request failed:',
           await response2.json(),
         );
-        throw new Error('Network response was not ok');
+        throw new Error('Network response was not ok: ${response2.status}');
       }
 
       const formData3 = new FormData();
@@ -397,6 +424,8 @@ function MainPage() {
 
       const result = await response4.json();
       console.log('Synchronization completed successfully', result);
+
+      console.log('Synchronization completed successfully');
     } catch (error) {
       console.error('Error during synchronization:', error);
       Alert.alert('Error', 'Failed to synchronize images');
