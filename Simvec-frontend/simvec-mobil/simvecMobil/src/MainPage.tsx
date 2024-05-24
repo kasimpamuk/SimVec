@@ -19,6 +19,7 @@ import {
   Platform,
 } from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+
 import {launchImageLibrary} from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {faUser, faCamera} from '@fortawesome/free-solid-svg-icons';
@@ -204,7 +205,7 @@ function MainPage() {
         });
       })
       .catch(error => {
-        console.error('ImagePicker Error: ', error);
+        //console.error('ImagePicker Error: ', error);
       });
   };
 
@@ -401,10 +402,6 @@ function MainPage() {
         'http://10.0.2.2:8000/api/synchronization',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`,
-          },
           body: formData3,
         },
       );
@@ -476,7 +473,6 @@ function MainPage() {
           onPress={() => navigation.navigate('User')} // Navigate to User profile
         >
           <FontAwesomeIcon icon={faUser} />
-          <Text style={styles.buttonText}>User Profile</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -491,7 +487,6 @@ function MainPage() {
           onPress={() => navigation.navigate('Settings')} // Navigate to Settings
         >
           <FontAwesomeIcon icon={faGear} />
-          <Text style={styles.buttonText}>Settings</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
