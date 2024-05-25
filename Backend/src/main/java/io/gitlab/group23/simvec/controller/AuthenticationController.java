@@ -26,15 +26,19 @@ public class AuthenticationController {
 	@PostMapping("/register")
 	public String register(@Validated @RequestBody SimvecUser simvecUser) {
 		log.info("Register: " + simvecUser.toString());
-		return authenticationService.register(simvecUser);
+		authenticationService.register(simvecUser);
+		return authenticationService.login(
+				new AuthRequest(
+						simvecUser.getUsername(),
+						simvecUser.getPassword()
+				)
+		);
 	}
 
 	@PostMapping("/login")
 	public String login(@RequestBody AuthRequest authRequest) {
 		log.info(String.format("Login: %s", authRequest.toString()));
-		String a = authenticationService.login(authRequest);
-		System.out.println("Hewr:" + a);
-		return a;
+		return authenticationService.login(authRequest);
 	}
 
 }
