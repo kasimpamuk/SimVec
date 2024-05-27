@@ -23,5 +23,7 @@
   "Enable Notifications": "Enable Notifications",
   "Dark Theme": "Dark Theme",
   "Back to Profile": "Back to Profile",
-  "Change Language": "Change Language"
+  "Change Language": "Change Language",
+  "Standard Version (High accuracy)": "Standard Version (High accuracy)",
+  "Advanced Version (Better in complex queries)": "Advanced Version (Better in complex queries)"
 }

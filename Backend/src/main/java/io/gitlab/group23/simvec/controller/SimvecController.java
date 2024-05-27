@@ -3,16 +3,21 @@ package io.gitlab.group23.simvec.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gitlab.group23.simvec.model.SimvecUser;
+import io.gitlab.group23.simvec.model.UserProfileInfo;
 import io.gitlab.group23.simvec.model.VectorDatabaseRequest;
-import io.gitlab.group23.simvec.service.ImagePopulationService;
 import io.gitlab.group23.simvec.service.TranslateText;
 import io.gitlab.group23.simvec.service.UserService;
-import io.gitlab.group23.simvec.service.VectorDatabaseService;
-import io.gitlab.group23.simvec.service.authentication.AuthenticationService;
 import io.gitlab.group23.simvec.service.ImageSynchronizationService;
+import io.gitlab.group23.simvec.service.TranslateText;
+import io.gitlab.group23.simvec.service.UserService;
+import io.gitlab.group23.simvec.service.*;
+import io.gitlab.group23.simvec.service.authentication.jwt.AuthenticationService;
+import io.gitlab.group23.simvec.service.vectordb.ImagePopulationService;
+import io.gitlab.group23.simvec.service.vectordb.VectorDatabaseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
@@ -22,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper; // Import ObjectMapper for J
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -38,10 +42,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class SimvecController {
 
 	private final VectorDatabaseService vectorDatabaseService;
+	private final ImagePopulationService imagePopulationService;
 	private final TranslateText translateText;
 	private final AuthenticationService authenticationService;
 	private final UserService userService;
-	private final ImagePopulationService imagePopulationService;
 
 	private final ImageSynchronizationService imageSynchronizationService;
 
@@ -56,12 +60,14 @@ public class SimvecController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<SimvecUser> registerUser(@Validated @RequestBody SimvecUser simvecUser) {
+	public ResponseEntity<String> registerUser(@Validated @RequestBody SimvecUser simvecUser) {
 		//System.out.println("hello");
-		return ResponseEntity.ok(authenticationService.registerUser(simvecUser));
+		return ResponseEntity.ok(authenticationService.register(simvecUser));
 	}
 
+
 	@PostMapping("/image-based-search/{topk}")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<List<byte[]>> imageBasedSearch(@RequestParam("file") MultipartFile image, @PathVariable(name = "topk") String topk) {
 		System.out.println("in image based search");
 		try {
@@ -73,25 +79,24 @@ public class SimvecController {
 		}
 	}
 
+
 	@PostMapping("/text-based-search")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
 		System.out.println("Text Based Search Endpoint");
-		// String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
-		// vectorDatabaseRequest.setInput(translatedText);
+		String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
+		vectorDatabaseRequest.setInput(translatedText);
 		List<byte[]> images = vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest);
 		return ResponseEntity.ok(images);
 	}
 
-	@GetMapping("/verify")
-	public String verifyUser(@RequestParam("code") String token) {
-		return authenticationService.verifyUserEmail(token);
-	}
-
 	@PostMapping("/transfer-images")
-	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images, @RequestParam String username) {
-//		SimvecUser user = userService.getUserByUsername(username);
-		imagePopulationService.saveImages(images, "alper");
-		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Images are saved successfully");
+	@PreAuthorize("hasAuthority('ROLE_USER')")
+	public ResponseEntity<?> transferImages(@RequestParam("images") MultipartFile[] images) {
+		if (imagePopulationService.saveImages(images)) {
+			return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Images are saved successfully");
+		}
+		return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body("Some images could not be saved!");
 	}
 
 	@PostMapping("/synchronize-images")
@@ -137,6 +142,15 @@ public class SimvecController {
 		}
 	}
 
-
+    @GetMapping("/get-user-info")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<UserProfileInfo> getUserInfo() {
+        SimvecUser simvecUser = authenticationService.getCurrentUserByToken();
+        return ResponseEntity.ok(new UserProfileInfo(
+                simvecUser.getUsername(),
+                simvecUser.getEmail(),
+                simvecUser.getNumberOfPhotos()
+        ));
+    }
 
 }

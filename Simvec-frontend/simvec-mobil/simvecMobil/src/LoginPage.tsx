@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
   View,
@@ -17,7 +18,7 @@ import {
 import logo from './assets/simvec.png';
 
 function LoginPage() {
-  const { t, i18n } = useTranslation();
+  const {t, i18n} = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState('');
@@ -25,14 +26,14 @@ function LoginPage() {
   // Get the navigation prop
   const navigation = useNavigation();
 
-  const handleSubmit = async () => {
+  const handleLoginSubmit = async () => {
     const loginData = {
-      email: email,
+      username: email,
       password: password,
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/login', {
+      const response = await fetch('http://10.0.2.2:8080/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,12 +41,15 @@ function LoginPage() {
         body: JSON.stringify(loginData),
       });
 
+      console.log(response.text);
       if (!response.ok) {
         const errorData = await response.json();
         setErrors(errorData);
         console.error('Login failed:', errorData);
       } else {
         console.log('Login successful!');
+        const token = await response.text();
+        await AsyncStorage.setItem('userToken', token);
         setErrors('');
         navigation.navigate('Main'); // Adjust with your main page route name
       }
@@ -60,44 +64,51 @@ function LoginPage() {
   };
 
   return (
-      <>
-        <View style={styles.imageHeader}>
-          <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
-        </View>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={styles.container}>
-            <View style={styles.header}></View>
-            <View style={styles.loginContainer}>
-              <Text style={styles.loginHeading}>{t('Login')}</Text>
-              {/* Email and Password Inputs */}
-              <TextInput
-                  style={styles.input}
-                  onChangeText={setEmail}
-                  value={email}
-                  placeholder={t('Email')}
-                  keyboardType="email-address"
-                  autoCapitalize="none" />
-              <TextInput
-                  style={styles.input}
-                  onChangeText={setPassword}
-                  value={password}
-                  placeholder={t('Password')}
-                  secureTextEntry={true}
-                  autoCapitalize="none" />
+    <>
+      <View style={styles.imageHeader}>
+        <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
+      </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.container}>
+          <View style={styles.header}></View>
+          <View style={styles.loginContainer}>
+            <Text style={styles.loginHeading}>{t('Login')}</Text>
+            {/* Email and Password Inputs */}
+            <TextInput
+              style={styles.input}
+              onChangeText={setEmail}
+              value={email}
+              placeholder={t('Email')}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={styles.input}
+              onChangeText={setPassword}
+              value={password}
+              placeholder={t('Password')}
+              secureTextEntry={true}
+              autoCapitalize="none"
+            />
 
-              <TouchableOpacity onPress={handleSubmit} style={styles.loginButton}>
-                <Text style={styles.loginButtonText}>{t('Login')}</Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleLoginSubmit}
+              style={styles.loginButton}>
+              <Text style={styles.loginButtonText}>{t('Login')}</Text>
+            </TouchableOpacity>
 
-              {/* Register Navigation Button */}
-              <TouchableOpacity onPress={navigateToRegister} style={styles.registerButton}>
-                <Text style={styles.registerButtonText}>{t("Don't have an account? Register")}</Text>
-              </TouchableOpacity>
-            </View>
+            {/* Register Navigation Button */}
+            <TouchableOpacity
+              onPress={navigateToRegister}
+              style={styles.registerButton}>
+              <Text style={styles.registerButtonText}>
+                {t("Don't have an account? Register")}
+              </Text>
+            </TouchableOpacity>
           </View>
-        </TouchableWithoutFeedback>
-      </>
-
+        </View>
+      </TouchableWithoutFeedback>
+    </>
   );
 }
 

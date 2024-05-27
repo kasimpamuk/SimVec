@@ -7,3 +7,5 @@ object
 test
 train
 reverse_image_search.csv
+user_alper_gallery/
+user_datasets/

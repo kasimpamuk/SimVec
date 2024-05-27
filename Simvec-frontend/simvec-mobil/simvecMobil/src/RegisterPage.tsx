@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 import {
   View,
   Text,
@@ -13,25 +13,29 @@ import {
 } from 'react-native';
 // Assuming simvec.png is correctly placed in your assets folder
 import logo from './assets/simvec.png';
+import {Picker} from '@react-native-picker/picker'; // New import from @react-native-picker/picker
+import RNPickerSelect from 'react-native-picker-select';
 
 function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedModel, setSelectedModel] = useState('recommended');
   const [errors, setErrors] = useState('');
-  const { t, i18n } = useTranslation();
+  const {t, i18n} = useTranslation();
   // Get the navigation prop
   const navigation = useNavigation();
 
-  const handleSubmit = async () => {
+  const handleRegisterSubmit = async () => {
     const userData = {
-      userName: name,
+      username: name,
       email: email,
       password: password,
+      roles: 'ROLE_USER',
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/register', {
+      const response = await fetch('http://10.0.2.2:8080/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,7 +44,6 @@ function RegisterPage() {
       });
 
       if (!response.ok) {
-        navigation.navigate('Main');
         const errorData = await response.json();
         setErrors(errorData);
         console.error('Registration failed:', errorData);
@@ -56,53 +59,71 @@ function RegisterPage() {
   };
 
   return (
-      <>
-        <View style={styles.imageHeader}>
-          <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
-        </View>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={styles.container}>
-            <View style={styles.header}></View>
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerHeading}>{t('Register')}</Text>
+    <>
+      <View style={styles.imageHeader}>
+        <Image source={logo} style={styles.websiteLogo} resizeMode="contain" />
+      </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.container}>
+          <View style={styles.header}></View>
+          <View style={styles.registerContainer}>
+            <Text style={styles.registerHeading}>{t('Register')}</Text>
 
-              <TextInput
-                  style={styles.input}
-                  onChangeText={setName}
-                  value={name}
-                  placeholder={t('Name')}
-                  autoCapitalize="none"
-              />
+            <TextInput
+              style={styles.input}
+              onChangeText={setName}
+              value={name}
+              placeholder={t('Name')}
+              autoCapitalize="none"
+            />
 
-              <TextInput
-                  style={styles.input}
-                  onChangeText={setEmail}
-                  value={email}
-                  placeholder={t('Email')}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-              />
+            <TextInput
+              style={styles.input}
+              onChangeText={setEmail}
+              value={email}
+              placeholder={t('Email')}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
-              <TextInput
-                  style={styles.input}
-                  onChangeText={setPassword}
-                  value={password}
-                  placeholder={t('Password')}
-                  secureTextEntry={true}
-                  autoCapitalize="none"
+            <TextInput
+              style={styles.input}
+              onChangeText={setPassword}
+              value={password}
+              placeholder={t('Password')}
+              secureTextEntry={true}
+              autoCapitalize="none"
+            />
+            <Text style={styles.label}>{t('Select a Model')}</Text>
+
+            <Picker
+              selectedValue={selectedModel}
+              style={styles.picker}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedModel(itemValue)
+              }>
+              <Picker.Item
+                label={t('Standard Version (High accuracy)')}
+                value="recommended"
               />
-              {errors.password && (
-                  <Text style={styles.error}>{errors.password}</Text>
-              )}
-              <Button
-                  onPress={handleSubmit}
-                  title={t('Register')}
-                  color="#841584" // Example color
+              <Picker.Item
+                label={t('Advanced Version (Better in complex queries)')}
+                value="advanced"
               />
-            </View>
+            </Picker>
+
+            {errors.password && (
+              <Text style={styles.error}>{errors.password}</Text>
+            )}
+            <Button
+              onPress={handleRegisterSubmit}
+              title={t('Register')}
+              color="#841584" // Example color
+            />
           </View>
-        </TouchableWithoutFeedback>
-      </>
+        </View>
+      </TouchableWithoutFeedback>
+    </>
   );
 }
 
@@ -115,11 +136,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f4f4f4', // A light grey background
   },
   imageHeader: {
-    width: '100%', // The header takes the full width of the screen
-    paddingBottom: 20, // Adds some space below the logo
-    backgroundColor: '#ffffff', // A white background for the header
-    borderBottomWidth: 1, // A line to separate the header from the content
-    borderColor: '#e0e0e0', // Light grey border color
+    width: '100%',
+    paddingBottom: 20,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
   },
   websiteLogo: {
     width: '90%', // Less than 100% to give some padding on the sides
@@ -158,4 +179,26 @@ const styles = StyleSheet.create({
   },
 });
 
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 4,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderColor: 'purple',
+    borderRadius: 8,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+  },
+});
 export default RegisterPage;

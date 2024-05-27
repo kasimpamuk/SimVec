@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>SimVec</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" href="assets/img/favicon-16x16.png" sizes="16x16" />
+  <link rel="icon" type="image/png" href="assets/img/favicon-32x32.png" sizes="32x32" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+  <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="assets/css/style.css" rel="stylesheet">
+
+  <!-- =======================================================
+  * Template Name: Appland
+  * Template URL: https://bootstrapmade.com/free-bootstrap-app-landing-page-template/
+  * Updated: Mar 17 2024 with Bootstrap v5.3.3
+  * Author: BootstrapMade.com
+  * License: https://bootstrapmade.com/license/
+  ======================================================== -->
+</head>
+
+<body>
+
+  <!-- ======= Header ======= -->
+  <header id="header" class="fixed-top  header-transparent ">
+    <div class="container d-flex align-items-center justify-content-between">
+
+      <div class="logo">
+        <h1><a href="index.html"><img src="assets/img/simvec.png" class="img-header" alt=""></a></h1>
+        <!-- Uncomment below if you prefer to use an image logo -->
+        <!-- <a href="index.html"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
+      </div>
+
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto active" href="#hero">Home</a></li>
+          <li><a class="getstarted scrollto" href="#features">Get Started</a></li>
+          <li><a class="nav-link scrollto" href="#gallery">Gallery</a></li>
+           <li><a class="nav-link scrollto" href="#developers">Developers</a></li>
+          <li><a class="nav-link scrollto" href="#techstack">Tech</a></li>
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav><!-- .navbar -->
+
+    </div>
+  </header><!-- End Header -->
+
+  <!-- ======= Hero Section ======= -->
+  <section id="hero" class="d-flex align-items-center">
+
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 d-lg-flex flex-lg-column justify-content-center align-items-stretch pt-5 pt-lg-0 order-2 order-lg-1" data-aos="fade-up">
+          <div>
+            <h1>SimVec</h1>
+            <h2>Find "that" picture in your gallery!</h2>
+            <a href="#" class="download-btn"><i class="bx bxl-play-store"></i> Google Play</a>
+            <a href="#" class="download-btn"><i class="bx bxl-apple"></i> App Store</a>
+          </div>
+        </div>
+        <div class="col-lg-6 d-lg-flex flex-lg-column align-items-stretch order-1 order-lg-2 hero-img" data-aos="fade-up">
+          <img src="assets/img/Simvec-App-Demo.jpeg" class="img-fluid" alt="">
+        </div>
+      </div>
+    </div>
+
+  </section><!-- End Hero -->
+
+  <main id="main">
+
+    <!-- ======= App Features Section ======= -->
+    <section id="features" class="features">
+      <div class="container">
+
+        <div class="section-title">
+          <h2>What does SimVec offer?</h2>
+          <p>SimVec simplifies the daunting task of searching through countless photos on your phone. Through our app, effortlessly discover images in two innovative ways: by uploading a reference picture or by inputting a descriptive query. As a user, entrust your photo gallery to our servers for transformation into vectors by advanced Machine Learning models. Benefit from swift retrieval of similar images from your collection using our high-performance Vector Database powered by Milvus. Enjoy a seamless and intuitive experience with SimVec, tailored for individuals seeking a quick and efficient solution to navigate through their photo libraries.</p>
+        </div>
+
+        <div class="row no-gutters">
+          <div class="col-xl-7 d-flex align-items-stretch order-2 order-lg-1">
+            <div class="content d-flex flex-column justify-content-center">
+              <div class="row">
+                <div class="col-md-6 icon-box" data-aos="fade-up">
+                  <i class="bx bx-receipt"></i>
+                  <h4>Image-Based Search</h4>
+                  <p>Search for similar images using a picture you already have.</p>
+                </div>
+                <div class="col-md-6 icon-box" data-aos="fade-up" data-aos-delay="100">
+                  <i class="bx bx-cube-alt"></i>
+                  <h4>Text-Based Search</h4>
+                  <p>Search by typing in a description of the image.</p>
+                </div>
+                <div class="col-md-6 icon-box" data-aos="fade-up" data-aos-delay="200">
+                  <i class="bx bx-images"></i>
+                  <h4>Upload Images From Your Gallery</h4>
+                  <p>Upload your photo gallery to the server for conversion to vectors by Machine Learning models.</p>
+                </div>
+                <div class="col-md-6 icon-box" data-aos="fade-up" data-aos-delay="300">
+                  <i class="bx bx-shield"></i>
+                  <h4>Using Vector Database Technology</h4>
+                  <p>Utilizes Milvus, a high-performance vector database optimized for image similarity search</p>
+                </div>
+                <div class="col-md-6 icon-box" data-aos="fade-up" data-aos-delay="400">
+                  <i class="bx bx-atom"></i>
+                  <h4>Efficient with A Large Volume of Images</h4>
+                  <p>Offers scalability to handle large photo collections efficiently</p>
+                </div>
+                <div class="col-md-6 icon-box" data-aos="fade-up" data-aos-delay="500">
+                  <i class="bx bx-id-card"></i>
+                  <h4>Provides an Easy UI</h4>
+                  <p>SimVec's intuitive interface ensures seamless user interaction, enhancing navigation and usability.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="image col-xl-5 d-flex align-items-stretch justify-content-center order-1 order-lg-2" data-aos="fade-left" data-aos-delay="100">
+            <img src="assets/img/man-looking-simvec.png" class="img-fluid" alt="">
+          </div>
+        </div>
+
+      </div>
+    </section><!-- End App Features Section -->
+
+    <!-- ======= Details Section ======= -->
+    <section id="details" class="details">
+      <div class="container">
+
+        <div class="row content">
+          <div class="col-md-4" data-aos="fade-right">
+            <img src="assets/img/five-fun.webp" class="img-fluid" alt="">
+          </div>
+          <div class="col-md-8 pt-4" data-aos="fade-up">
+            <h3>You can trust SimVec</h3>
+            <p class="fst-italic">
+              SimVec's advanced features cater to diverse user needs, ensuring secure authentication, efficient memory usage, and seamless synchronization for multiuser access.
+            </p>
+            <ul>
+              <li><i class="bi bi-check"></i> SimVec ensures user privacy with secure authentication for logging in with JWT.</li>
+              <li><i class="bi bi-check"></i> Cloud-stored embeddings save mobile memory.</li>
+              <li><i class="bi bi-check"></i> Sync mobile app gallery with vector embeddings by a click.</li>
+              <li><i class="bi bi-check"></i> Multiusers with varied embedding collections can use SimVec.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="row content">
+          <div class="col-md-4 order-1 order-md-2" data-aos="fade-left">
+            <img src="assets/img/vector-database.webp" class="img-fluid" alt="">
+          </div>
+          <div class="col-md-8 pt-5 order-2 order-md-1" data-aos="fade-up">
+            <h3>Advanced Content Retrieval</h3>
+            <p class="fst-italic">
+              Navigate your digital collection easily with SimVec, which combines Milvus, CLIP, and Transformers for fast and accurate similarity searches.
+            </p>
+            <p>
+              Discover the powerful features of SimVec’s vector database, enhanced with Milvus and supported by advanced technologies like CLIP and Transformers. These tools turn your images and text into detailed numerical forms, organized and saved for lightning-fast image retrieval.            </p>
+            <p>
+              When you search in your personal galleries, our system quickly measures distances between your search requests and the stored data, using the latest algorithms to find the exact matches you need. With Milvus at its heart and enhanced by CLIP and Transformers, SimVec delivers top-notch scalability, performance, and precision for searches that match your specific needs.
+            </p>
+          </div>
+        </div>
+
+        <div class="row content">
+          <div class="col-md-4" data-aos="fade-right">
+            <img src="assets/img/footsteps.webp" class="img-fluid" alt="">
+          </div>
+          <div class="col-md-8 pt-5" data-aos="fade-up">
+            <h3>Getting "that" Image with SimVec</h3>
+            <p>Using SimVec is remarkably straightforward; you're just a few steps away from seeing the image you desire in your gallery.</p>
+            <ul>
+              <li><i class="bi bi-check"></i> Register to simvec with your email and username.</li>
+              <li><i class="bi bi-check"></i> All images will be uploaded from your gallery to vector database.</li>
+              <li><i class="bi bi-check"></i> Start searching by uploading a photo or writing a text query to search.</li>
+              <li><i class="bi bi-check"></i> After selecting the number of images you want to retrieve, click on the submit button.</li>
+              <li><i class="bi bi-check"></i> Get "that" image.</li>
+            </ul>
+            <p>
+              
+Unlock a seamless image discovery experience with SimVec - your gateway to effortless visual exploration.
+            </p>
+          </div>
+        </div>
+
+        <div class="row content">
+          <div class="col-md-4" data-aos="fade-right">
+            <img src="assets/img/technical-flow.jpeg" class="img-fluid" alt="">
+          </div>
+          <div class="col-md-8 pt-5" data-aos="fade-up">
+            <h3>Technical Flow of SimVec</h3>
+            <p>Discover the technology behind our mobile application, which utilizes a sophisticated machine learning model and vector database to process and analyze images or text efficiently.</p>
+            <h4>Mobile Application</h4>
+            <p>Users interact with our app by uploading images or entering text, which are then sent securely to our server for advanced processing.</p>
+            <h4>Server Processing</h4>
+            <ul>
+              <li><i class="bi bi-check"></i><strong>Machine Learning Model:</strong> The server's machine learning model transforms the input data (images or text) into numerical vectors. These vectors uniquely represent the data's features, acting as digital fingerprints.</li>
+              <li><i class="bi bi-check"></i><strong>Vector Database:</strong> These vectors are stored in a specialized vector database designed for rapid and accurate matching, enhancing the search process.</li>
+            </ul>
+            
+            <h4>Result Delivery</h4>
+        <p>The backend application retrieves matching or similar items based on the vectors, fetches their corresponding images or text, and delivers these results back to the mobile app for user display.</p>
+        
+        <p>Our integration of cutting-edge machine learning and database technologies ensures that users experience quick, accurate results, enhancing user interaction and satisfaction.</p>
+      
+          </div>
+        </div>
+
+        
+
+      </div>
+    </section><!-- End Details Section -->
+
+    
+    
+
+
+    <!-- ======= Gallery Section ======= -->
+    <section id="gallery" class="gallery">
+      <div class="container" data-aos="fade-up">
+
+        
+
+      </div>
+
+      <div class="container-fluid" data-aos="fade-up">
+        <div class="gallery-slider swiper">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide"><a href="assets/img/app-images/login.png" class="gallery-lightbox" data-gall="gallery-carousel"><img src="assets/img/app-images/login.png" class="img-fluid" alt=""></a></div>
+            <div class="swiper-slide"><a href="assets/img/app-images/register.png" class="gallery-lightbox" data-gall="gallery-carousel"><img src="assets/img/app-images/register.png" class="img-fluid" alt=""></a></div>
+            <div class="swiper-slide"><a href="assets/img/app-images/mainPage.png" class="gallery-lightbox" data-gall="gallery-carousel"><img src="assets/img/app-images/mainPage.png" class="img-fluid" alt=""></a></div>
+            <div class="swiper-slide"><a href="assets/img/app-images/app-1.png" class="gallery-lightbox" data-gall="gallery-carousel"><img src="assets/img/app-images/app-1.png" class="img-fluid" alt=""></a></div>
+            <div class="swiper-slide"><a href="assets/img/app-images/photos2.png" class="gallery-lightbox" data-gall="gallery-carousel"><img src="assets/img/app-images/photos2.png" class="img-fluid" alt=""></a></div>
+            <div class="swiper-slide"><a href="assets/img/app-images/imagesearch.png" class="gallery-lightbox" data-gall="gallery-carousel"><img src="assets/img/app-images/imagesearch.png" class="img-fluid" alt=""></a></div>
+            <div class="swiper-slide"><a href="assets/img/app-images/settings.png" class="gallery-lightbox" data-gall="gallery-carousel"><img src="assets/img/app-images/settings.png" class="img-fluid" alt=""></a></div>
+            <div class="swiper-slide"><a href="assets/img/app-images/user.png" class="gallery-lightbox" data-gall="gallery-carousel"><img src="assets/img/app-images/user.png" class="img-fluid" alt=""></a></div>
+          </div>
+          <div class="swiper-pagination"></div>
+        </div>
+
+      </div>
+    </section><!-- End Gallery Section -->
+
+    <!-- ======= Developers Section ======= -->
+<section id="developers" class="developers">
+
+    <div class="section-title">
+      <h2>Meet Our Developers</h2>
+      <p>Get to know the individuals behind SimVec.</p>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+        <div class="member">
+          <img src="assets/img/developers/elif-lale.jpg" class="img-fluid rounded-circle developer-image" alt="">
+          <div class="member-info">
+            <h4>Elif Lale</h4>
+            <span>Developer</span>
+            <p>lale.elif@metu.edu.tr</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+        <div class="member">
+          <img src="assets/img/developers/alper-keskin.jpeg" class="img-fluid rounded-circle developer-image" alt="">
+          <div class="member-info">
+            <h4>Alper Keskin</h4>
+            <span>Developer</span>
+            <p>alper.keskin@metu.edu.tr</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+        <div class="member">
+          <img src="assets/img/developers/halil-yerlikaya.jpeg" class="img-fluid rounded-circle developer-image" alt="">
+          <div class="member-info">
+            <h4>Halil Yerlikaya</h4>
+            <span>Developer</span>
+            <p>halil.yerlikaya@metu.edu.tr</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+        <div class="member">
+          <img src="assets/img/developers/atakan-gelecek.jpeg" class="img-fluid rounded-circle developer-image" alt="">
+          <div class="member-info">
+            <h4>Atakan Gelecek</h4>
+            <span>Developer</span>
+            <p>atakan.gelecek@metu.edu.tr</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+        <div class="member">
+          <img src="assets/img/developers/kasim-pamuk.jpeg" class="img-fluid rounded-circle developer-image" alt="">
+          <div class="member-info">
+            <h4>Kasım Pamuk</h4>
+            <span>Developer</span>
+            <p>kasim.pamuk@metu.edu.tr</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- End Developers Section -->
+
+<section id="features" class="features">
+<div class="supervisors-container" style="text-align: center;">
+  <h2 > <strong>Supervisors</strong></h4>
+  <h3 >Prof. Dr. Pınar Karagöz</h3>
+  <h3 >Prof. Dr. İsmail Hakkı Toroslu</h3>
+</div>
+</section>
+
+<section id="techstack" class="techstack">
+  <div class="logo-container">
+    <!-- Django -->
+    <a href="https://www.djangoproject.com/" target="_blank">
+      <img src="assets/img/tech/djangologo.svg" alt="Django" class="logo">
+    </a>
+    <!-- Python -->
+    <a href="https://www.python.org/" target="_blank">
+      <img src="assets/img/tech/pythonlogo.jpeg" alt="Python" class="logo">
+    </a>
+    <!-- Hugging Face Transformers -->
+    <a href="https://huggingface.co/transformers/" target="_blank">
+      <img src="assets/img/tech/transformerslogo.png" alt="Transformers" class="logo">
+    </a>
+    <!-- Docker -->
+    <a href="https://www.docker.com/" target="_blank">
+      <img src="assets/img/tech/dockerlogo.svg" alt="Docker" class="logo">
+    </a>
+    <!-- Milvus -->
+    <a href="https://milvus.io/" target="_blank">
+      <img src="assets/img/tech/milvuslogo.png" alt="Milvus" class="logo">
+    </a>
+    <!-- Java -->
+    <a href="https://www.java.com/" target="_blank">
+      <img src="assets/img/tech/javalogo.webp" alt="Java" class="logo">
+    </a>
+    <!-- Spring Framework -->
+    <a href="https://spring.io/" target="_blank">
+      <img src="assets/img/tech/springlogo.png" alt="Spring Framework" class="logo">
+    </a>
+    <!-- React -->
+    <a href="https://reactjs.org/" target="_blank">
+      <img src="assets/img/tech/reactlogo.png" alt="React" class="logo">
+    </a>
+    <!-- TypeScript -->
+    <a href="https://www.typescriptlang.org/" target="_blank">
+      <img src="assets/img/tech/typescriptlogo.png" alt="TypeScript" class="logo">
+    </a>
+  </div>
+</section>
+
+
+  </main><!-- End #main -->
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+
+
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-3 col-md-6 footer-contact">
+            <h3>SimVec</h3>
+            <p>
+              METU Computer Engineering Department <br>
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container py-4">
+      <div class="copyright">
+        &copy; Copyright <strong><span>SimVec</span></strong>. All Rights Reserved
+      </div>
+      <div class="credits">
+        <!-- All the links in the footer should remain intact. -->
+        <!-- You can delete the links only if you purchased the pro version. -->
+        <!-- Licensing information: https://bootstrapmade.com/license/ -->
+        <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/free-bootstrap-app-landing-page-template/ -->
+        Designed by SimVec</a>
+      </div>
+    </div>
+  </footer><!-- End Footer -->
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Vendor JS Files -->
+  <script src="assets/vendor/aos/aos.js"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="assets/vendor/php-email-form/validate.js"></script>
+
+  <!-- Template Main JS File -->
+  <script src="assets/js/main.js"></script>
+
+</body>
+
+</html>

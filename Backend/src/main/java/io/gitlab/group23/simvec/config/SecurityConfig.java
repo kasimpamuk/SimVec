@@ -1,57 +1,71 @@
 package io.gitlab.group23.simvec.config;
 
+import io.gitlab.group23.simvec.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-
-import java.util.Arrays;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
-	private static final String PUBLIC_ENDPOINTS = "/api/**";
+	private static final String PUBLIC_ENDPOINTS = "/auth/**";
+	private final JwtAuthFilter authFilter;
 
+	@Autowired
+	public SecurityConfig(JwtAuthFilter authFilter) {
+		this.authFilter = authFilter;
+	}
+
+	// User Creation
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http
-				.cors(cors -> cors.configurationSource(request -> {
-					CorsConfiguration config = new CorsConfiguration();
-					config.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // Adjust as necessary for your frontend
-					config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-					config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-					return config;
-				}))
-				.csrf(AbstractHttpConfigurer::disable) // Disable CSRF for simplicity in APIs
-				.authorizeHttpRequests(authz -> authz
-						.requestMatchers("/api/**", "/api/public/**").permitAll() // Specify more public endpoints as needed
-						.anyRequest().authenticated()
-				)
-				.httpBasic(httpBasic -> {});
+	public UserDetailsService userDetailsService() {
+		return new UserService();
+	}
 
-		return http.build();
+	// Configuring HttpSecurity
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		return http.csrf(csrf -> csrf.disable())
+				.authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_ENDPOINTS).permitAll())
+				.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+				.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.authenticationProvider(authenticationProvider())
+				.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+				.build();
+	}
+
+	// Password Encoding
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
 	}
 
 	@Bean
-	public UserDetailsService userDetailsService() {
-		PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+	public AuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+		authenticationProvider.setUserDetailsService(userDetailsService());
+		authenticationProvider.setPasswordEncoder(passwordEncoder());
+		return authenticationProvider;
+	}
 
-		UserDetails user = User.withUsername("user")
-				.password(encoder.encode("password"))
-				.roles("USER")
-				.build();
-
-		return new InMemoryUserDetailsManager(user);
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+		return config.getAuthenticationManager();
 	}
 
 }
