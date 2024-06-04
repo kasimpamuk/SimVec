@@ -21,9 +21,9 @@ model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch16")
 
 search_params = {
-    "metric_type": "L2", 
-    "offset": 0, 
-    "ignore_growing": False, 
+    "metric_type": "L2",
+    "offset": 0,
+    "ignore_growing": False,
     "params": {"nprobe": 10}
 }
 
@@ -32,19 +32,19 @@ HOST = '127.0.0.1'
 PORT = '19530'
 TOPK = None # number of results to return
 
-DIM = 512 
+DIM = 512
 INDEX_TYPE = 'IVF_FLAT'
 METRIC_TYPE = 'L2'
 
 def csv_maker(dataset_path, user_id):
     # Directory where the CSV files will be saved
     csv_directory = "user_datasets"
-    
+
     if not os.path.exists(csv_directory):
         os.makedirs(csv_directory)
-    
+
     output_csv = os.path.join(csv_directory, "image_paths_" + str(user_id) + ".csv")
-    
+
     image_data = []
     id_counter = 0
 
@@ -54,7 +54,7 @@ def csv_maker(dataset_path, user_id):
                 image_path = os.path.join(root, file)
                 image_data.append([id_counter, image_path])
                 id_counter += 1
-                
+
                 # Debug print to check the file paths being added
                 #print(f"Adding: {id_counter}, {image_path}")
 
@@ -111,16 +111,18 @@ def create_milvus_collection(collection_name, model):
 def create_milvus_entities(user_dataset, model, processor):
     embeddings = []
     df = pd.read_csv(user_dataset)
+
     for index, row in df.iterrows():
         image_path = row['path']
         image = Image.open(image_path).convert('RGB')  # Ensure image is in RGB
         inputs = processor(images=image, return_tensors="pt")
 
         # Depending on the model used, the method to get embeddings will differ
-        if isinstance(model, CLIPModel):
-            image_features = model.get_image_features(**inputs)
-            embedding = image_features.squeeze(0).detach().numpy().tolist()
-            norm_embedding = embedding / np.linalg.norm(embedding)
+        #if isinstance(model, CLIPModel):
+        image_features = model.get_image_features(**inputs)
+        embedding = image_features.squeeze(0).detach().numpy().tolist()
+        norm_embedding = embedding / np.linalg.norm(embedding)
+        """
         elif isinstance(model, BlipForConditionalGeneration):
             image_features = model.generate(**inputs, max_new_tokens=512)
             embedding = image_features.squeeze(0).detach().numpy().tolist()
@@ -128,9 +130,11 @@ def create_milvus_entities(user_dataset, model, processor):
             if len(embedding) < 512:
                 norm_embedding = np.pad(norm_embedding, (0, 512 - len(norm_embedding)))
             #print(len(norm_embedding))
-            embeddings.append(norm_embedding)
-        else:
-            raise ValueError("Unsupported model type")
+        """
+        embeddings.append(norm_embedding)
+
+
+
 
     paths = df['path'].tolist()
     entities = [[path for path in paths],
@@ -143,17 +147,17 @@ def initialize_milvus(collection_name, image_folder_path, model, processor):
     connections.connect(host=HOST, port=PORT)
 
     # display all the collections
-    #print(utility.list_collections())
+    print(utility.list_collections())
     #drop all collections
     #collections = utility.list_collections()
     #for collection in collections:
     #    utility.drop_collection(collection)
-    
+
     # Check if the collection already exists
     if(utility.has_collection(collection_name)):
         collection = Collection(collection_name)
         print(f"Using existing collection: {collection_name}")
-    
+
     else:
         print(f"Creating new collection: {collection_name}")
         collection = create_milvus_collection(collection_name, model)
@@ -185,7 +189,7 @@ def create_collection_for_new_user(request):
         return JsonResponse({'error': 'Invalid model option'}, status=400)
 
     # Rest of your existing code to create collection
-    collection_name = 'user' + str(user_id) + 'gallery'
+    collection_name = 'user_' + str(user_id) + '_gallery'
     user_dataset = csv_maker(image_folder_path, user_id)
     print(user_dataset)
     collection = initialize_milvus(collection_name, user_dataset, model, processor)
@@ -201,8 +205,8 @@ def image_based_search(request):
     topk = data.get('topk')
     query_image_path = data.get('input')
     print(query_image_path)
-    #user_id = data.get('user_id')
-    user_id = "alper"
+    user_id = data.get('username')
+    #user_id = "alper"
     model_option = data.get('model_option', 'clip')  # Default to 'clip' if not specified
     collection_name = 'user_' + str(user_id) + '_gallery'
     model = None
@@ -215,8 +219,8 @@ def image_based_search(request):
 
     collection = initialize_milvus(collection_name, None, model, processor)
     collection.load()
-    try:    
-        query_image = Image.open(query_image_path).convert('RGB')  
+    try:
+        query_image = Image.open(query_image_path).convert('RGB')
         query_inputs = processor(images=query_image, return_tensors="pt")
         query_image_features = model.get_image_features(**query_inputs)
         image_embedding = query_image_features.squeeze(0).detach().numpy().tolist()
@@ -225,9 +229,9 @@ def image_based_search(request):
         distance_threshold = 0.805 # similarity threshold
 
         results = collection.search(
-            data=[norm_embedding], 
-            anns_field="embedding", 
-            # the sum of `offset` in `param` and `limit` 
+            data=[norm_embedding],
+            anns_field="embedding",
+            # the sum of `offset` in `param` and `limit`
             # should be less than 16384.
             param=search_params,
             limit=(int) (topk),
@@ -238,7 +242,7 @@ def image_based_search(request):
         for result in results[0]:
             if (result.distance) < (distance_threshold):
                 #print(result.distance)
-                formatted_id = "/" + result.id[1:]  
+                formatted_id = "/" + result.id[1:]
                 filtered_results.append(formatted_id)
 
         return JsonResponse({'message': 'Image processed successfully', 'results': list(filtered_results)})
@@ -256,7 +260,7 @@ def text_based_search(request):
     topk = data.get('topk')
     query_text = data.get('input')
     #user_id = data.get('user_id')
-    user_id = "alper"
+    user_id = data.get('username')
     model_option = data.get('model_option', 'clip')  # Default to 'clip' if not specified
     collection_name = 'user_' + str(user_id) + '_gallery'
     model = None
@@ -284,9 +288,9 @@ def text_based_search(request):
         distance_threshold = 1.502 # similarity threshold
 
         results = collection.search(
-            data=[norm_text_embedding], 
-            anns_field="embedding", 
-            # the sum of `offset` in `param` and `limit` 
+            data=[norm_text_embedding],
+            anns_field="embedding",
+            # the sum of `offset` in `param` and `limit`
             # should be less than 16384.
             param=search_params,
             limit=(int) (topk),
@@ -297,7 +301,7 @@ def text_based_search(request):
         for result in results[0]:
             if (result.distance) < (distance_threshold):
                 #print(result.distance)
-                formatted_id = "/" + result.id[1:]  
+                formatted_id = "/" + result.id[1:]
                 filtered_results.append(formatted_id)
 
         return JsonResponse({'message': 'Image processed successfully', 'results': list(filtered_results)})
@@ -305,7 +309,7 @@ def text_based_search(request):
     except Exception as e:
         # Handle any errors that occur during the process
         return JsonResponse({'error': str(e)}, status=500)
-       
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -324,7 +328,7 @@ def image_embedding_and_storage(request):
         updated_images = request.FILES.getlist('updated_images')  # Get list of image files
         if len(updated_images)==0:
             return JsonResponse({'message': 'Images added successfully', 'collection_name': collection_name})
-            
+
         print("updated_images in insert: ", updated_images)
         # get the id of the last image in the csv file
 
@@ -344,7 +348,7 @@ def image_embedding_and_storage(request):
             for image in updated_images:
                 writer.writerow([last_id, image])
                 last_id = (int) (last_id) + 1
-        
+
         # add the temp csv to the user's csv file
         with open(user_dataset, 'a') as f:
             with open(temp_csv, 'r') as t:
@@ -365,8 +369,8 @@ def image_embedding_and_storage(request):
         updated_images = request.FILES.getlist('updated_images')
         if len(updated_images)==0:
             return JsonResponse({'message': 'Images deleted successfully', 'collection_name': collection_name})
-        
-        
+
+
         print("updated_images: ", updated_images)
 
         expr = " || ".join([f"path == '{path}'" for path in updated_images])
@@ -380,4 +384,4 @@ def image_embedding_and_storage(request):
         df.to_csv(user_dataset, index=False)
 
         return JsonResponse({'message': 'Images deleted successfully', 'collection_name': collection_name})
-        
+

@@ -71,7 +71,7 @@ public class SimvecController {
 	public ResponseEntity<List<byte[]>> imageBasedSearch(@RequestParam("file") MultipartFile image, @PathVariable(name = "topk") String topk) {
 		System.out.println("in image based search");
 		try {
-			return ResponseEntity.ok(vectorDatabaseService.executeImageBasedSearch(image, topk));
+			return ResponseEntity.ok(vectorDatabaseService.executeImageBasedSearch(image, topk, authenticationService.getCurrentUserByToken().getUsername()));
 		} catch (IOException e) {
 			return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(null);
 		} catch (InterruptedException e) {
@@ -84,8 +84,11 @@ public class SimvecController {
 	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public ResponseEntity<List<byte[]>> textBasedSearch(@RequestBody VectorDatabaseRequest vectorDatabaseRequest) throws IOException, InterruptedException {
 		System.out.println("Text Based Search Endpoint");
-		String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
-		vectorDatabaseRequest.setInput(translatedText);
+		//String translatedText = translateText.translateText("hidden-marker-416811" , "en", vectorDatabaseRequest.getInput());
+		//vectorDatabaseRequest.setInput(translatedText);
+
+		vectorDatabaseRequest.setUsername(authenticationService.getCurrentUserByToken().getUsername());
+
 		List<byte[]> images = vectorDatabaseService.executeTextBasedSearch(vectorDatabaseRequest);
 		return ResponseEntity.ok(images);
 	}

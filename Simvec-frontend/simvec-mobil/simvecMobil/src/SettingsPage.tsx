@@ -92,6 +92,14 @@ function SettingsPage({navigation}) {
           color="#ff6347"
         />
       </View>
+
+      <View style={styles.buttonContainer}>
+              <Button
+                title={t('Frequently Asked Questions')}
+                onPress={() => navigation.navigate('FAQ')}
+                color="#ff6347"
+              />
+            </View>
     </View>
   );
 }

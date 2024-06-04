@@ -19,7 +19,7 @@ import {
   Platform,
 } from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import { PermissionsAndroid } from 'react-native';
+import {PermissionsAndroid} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {faUser, faCamera} from '@fortawesome/free-solid-svg-icons';
@@ -44,7 +44,7 @@ function MainPage() {
   const handlePressOut = () => setIsButtonPressed(false); // Handle button release
   const slideAnim = new Animated.Value(0); // Animation for slide-in effect
   const [image, setImage] = useState<{uri: string; base64?: string} | null>(
-      null,
+    null,
   );
   const navigation = useNavigation();
   const screenWidth = Dimensions.get('window').width; // Get the screen width
@@ -104,11 +104,11 @@ function MainPage() {
   const measureAndDisplayGuide = index => {
     setCurrentStepIndex(0);
     guideSteps[index]['ref'].current.measure(
-        (x, y, width, height, pageX, pageY) => {
-          setCurrentElementPosition({x: pageX, y: pageY, width, height});
-          setCurrentStepIndex(0);
-          setShowGuide(true);
-        },
+      (x, y, width, height, pageX, pageY) => {
+        setCurrentElementPosition({x: pageX, y: pageY, width, height});
+        setCurrentStepIndex(0);
+        setShowGuide(true);
+      },
     );
   };
 
@@ -130,21 +130,21 @@ function MainPage() {
     try {
       const token = await AsyncStorage.getItem('userToken');
       const response = await fetch(
-          'http://10.0.2.2:8080/api/text-based-search',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(data),
+        'http://192.168.221.8:8080/api/text-based-search',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify(data),
+        },
       );
 
       const base64Images = await response.json();
 
       const urls = base64Images.map(
-          base64 => `data:image/jpeg;base64,${base64}`,
+        base64 => `data:image/jpeg;base64,${base64}`,
       );
       setImageList(urls);
       console.log(imageList);
@@ -180,35 +180,37 @@ function MainPage() {
       cropping: true,
       includeBase64: true,
     })
-        .then(image => {
-          setImage({
-            uri: image.path,
-            base64: image.data,
-          });
-        })
-        .catch(error => {
-          console.error('ImagePicker Error: ', error);
+      .then(image => {
+        setImage({
+          uri: image.path,
+          base64: image.data,
         });
+      })
+      .catch(error => {
+        console.log('ImagePicker Error: ', error);
+      });
   };
 
   const checkAndRequestPermissions = async () => {
     try {
       // Check if the permission has already been granted
-      const granted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
+      const granted = await PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+      );
       if (granted) {
         await AsyncStorage.setItem('cameraPermission', 'granted');
         return true;
       } else {
         // Request the permission if it hasn't been granted
         const result = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.CAMERA,
-            {
-              title: 'Camera Permission',
-              message: 'This app needs access to your camera to take pictures.',
-              buttonNeutral: 'Ask Me Later',
-              buttonNegative: 'Cancel',
-              buttonPositive: 'OK',
-            },
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: 'Camera Permission',
+            message: 'This app needs access to your camera to take pictures.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
         );
         if (result === PermissionsAndroid.RESULTS.GRANTED) {
           await AsyncStorage.setItem('cameraPermission', 'granted');
@@ -237,15 +239,15 @@ function MainPage() {
       cropping: true,
       includeBase64: true,
     })
-        .then(image => {
-          setImage({
-            uri: image.path,
-            base64: image.data,
-          });
-        })
-        .catch(error => {
-          console.error('ImagePicker Error: ', error);
+      .then(image => {
+        setImage({
+          uri: image.path,
+          base64: image.data,
         });
+      })
+      .catch(error => {
+        console.log('ImagePicker Error: ', error);
+      });
   };
 
   const handleImageSubmit = async () => {
@@ -263,15 +265,15 @@ function MainPage() {
     try {
       const token = await AsyncStorage.getItem('userToken');
       const response = await fetch(
-          `http://10.0.2.2:8080/api/image-based-search/${searchNumber}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              Authorization: `Bearer ${token}`,
-            },
-            body: formData,
+        `http://192.168.221.8:8080/api/image-based-search/${searchNumber}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
           },
+          body: formData,
+        },
       );
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -279,7 +281,7 @@ function MainPage() {
 
       const base64Images: string[] = await response.json();
       const urls = base64Images.map(
-          base64 => `data:image/jpeg;base64,${base64}`,
+        base64 => `data:image/jpeg;base64,${base64}`,
       );
       setImageList(urls);
     } catch (error) {
@@ -306,7 +308,7 @@ function MainPage() {
         const files = await RNFS.readDir(dir);
         console.log('files: ', files);
         const imageFiles = files.filter(file =>
-            ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
+          ['jpg', 'jpeg', 'png', 'gif'].some(ext => file.name.endsWith(ext)),
         );
         console.log('imageFiles: ', imageFiles);
         //imageNames = imageNames.concat(imageFiles.map(file => file.name));
@@ -334,15 +336,15 @@ function MainPage() {
       formData1.append('username', user_info.username);
 
       const response1 = await fetch(
-          'http://10.0.2.2:8080/api/synchronize-images',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              Authorization: `Bearer ${token}`,
-            },
-            body: formData1,
+        'http://192.168.221.8:8080/api/synchronize-images',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
           },
+          body: formData1,
+        },
       );
 
       if (!response1.ok) {
@@ -357,16 +359,16 @@ function MainPage() {
       const galleryImageNames = Object.keys(galleryImageFilesPaths);
 
       const imagesToDelete = backendImageFiles.filter(
-          img => !galleryImageNames.includes(img),
+        img => !galleryImageNames.includes(img),
       );
 
       console.log(
-          'Images that need to be deleted from backend: ',
-          imagesToDelete,
+        'Images that need to be deleted from backend: ',
+        imagesToDelete,
       );
       // Step 3: Find images to add to backend
       const imagesToAdd = galleryImageNames.filter(
-          img => !backendImageFiles.includes(img),
+        img => !backendImageFiles.includes(img),
       );
 
       console.log('Images that need to be added to backend: ', imagesToAdd);
@@ -385,12 +387,12 @@ function MainPage() {
       for (const imageName of imagesToAdd) {
         // Assuming you have a way to retrieve the actual image file by name
         const imageFile = await RNFS.readFile(
-            galleryImageFilesPaths[imageName],
-            'base64',
+          galleryImageFilesPaths[imageName],
+          'base64',
         );
         console.log(
-            'galleryImageFilesPaths[imageName]',
-            galleryImageFilesPaths[imageName],
+          'galleryImageFilesPaths[imageName]',
+          galleryImageFilesPaths[imageName],
         );
         imageFilesToUpload.push({
           uri: 'file://' + galleryImageFilesPaths[imageName], // Data URI format
@@ -413,21 +415,21 @@ function MainPage() {
 
       // Send the second request with form-data
       const response2 = await fetch(
-          'http://10.0.2.2:8080/api/add-delete-images',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              Authorization: `Bearer ${token}`,
-            },
-            body: formData2,
+        'http://192.168.221.8:8080/api/add-delete-images',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
           },
+          body: formData2,
+        },
       );
 
       if (!response2.ok) {
         console.error(
-            'Synchronization request failed:',
-            await response2.json(),
+          'Synchronization request failed:',
+          await response2.json(),
         );
         throw new Error('Network response was not ok: ${response2.status}');
       }
@@ -438,11 +440,11 @@ function MainPage() {
       formData3.append('updated_images', JSON.stringify(imagesToDelete));
 
       const response3 = await fetch(
-          'http://10.0.2.2:8000/api/synchronization',
-          {
-            method: 'POST',
-            body: formData3,
-          },
+        'http://192.168.221.8:8000/api/synchronization',
+        {
+          method: 'POST',
+          body: formData3,
+        },
       );
       if (!response3.ok) {
         throw new Error('Network response was not ok');
@@ -461,11 +463,11 @@ function MainPage() {
       });
 
       const response4 = await fetch(
-          'http://10.0.2.2:8000/api/synchronization',
-          {
-            method: 'POST',
-            body: formData4,
-          },
+        'http://192.168.221.8:8000/api/synchronization',
+        {
+          method: 'POST',
+          body: formData4,
+        },
       );
       if (!response4.ok) {
         throw new Error('Network response was not ok');
@@ -488,216 +490,218 @@ function MainPage() {
   const highlightedStyle = {backgroundColor: 'orange'};
 
   return (
-      <ScrollView style={styles.container}>
-        <OverlayGuide
-            isVisible={showGuide}
-            onDismiss={handleGuideNext}
-            step={guideSteps[currentStepIndex]}
-            position={currentElementPosition}
+    <ScrollView style={styles.container}>
+      <OverlayGuide
+        isVisible={showGuide}
+        onDismiss={handleGuideNext}
+        step={guideSteps[currentStepIndex]}
+        position={currentElementPosition}
+      />
+      <View style={styles.header}>
+        <Image source={logo} style={styles.logo} resizeMode="contain" />
+      </View>
+      {/* New view for settings and user profile buttons */}
+      <View style={styles.row}>
+        <TouchableOpacity
+          ref={profileButtonRef}
+          style={[
+            styles.buttonContainer,
+            isButtonPressed ? styles.buttonHover : {},
+            currentStepIndex === 0 ? highlightedStyle : {}, // Apply hover style
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={() => navigation.navigate('User')} // Navigate to User profile
+        >
+          <FontAwesomeIcon icon={faUser} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          ref={settingsButtonRef}
+          style={[
+            styles.buttonContainer,
+            isButtonPressed ? styles.buttonHover : {},
+            currentStepIndex === 1 ? highlightedStyle : {}, // Apply hover style
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={() => navigation.navigate('Settings')} // Navigate to Settings
+        >
+          <FontAwesomeIcon icon={faGear} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          ref={syncButtonRef}
+          style={[
+            styles.buttonContainer,
+            isButtonPressed ? styles.buttonHover : {},
+            currentStepIndex === 2 ? highlightedStyle : {}, // Apply hover style
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={synchronizationHandler} // Placeholder action
+        >
+          <FontAwesomeIcon icon={faRotate} />
+          <Text style={styles.buttonText}>Synchronize</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          ref={userGuideRef}
+          style={[
+            styles.buttonContainer,
+            isButtonPressed ? styles.buttonHover : {}, // Apply hover style
+            currentStepIndex === 3 ? highlightedStyle : {},
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={() => measureAndDisplayGuide(0)}
+          // Placeholder action
+        >
+          <FontAwesomeIcon icon={faBook} />
+          <Text style={styles.buttonText}>User Guide</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View
+        style={[
+          styles.textAreaContainer,
+          currentStepIndex === 4 ? highlightedStyle : {},
+        ]}>
+        <Text style={styles.label}>Enter text for search:</Text>
+        <TextInput
+          ref={textInputRef}
+          style={styles.textArea}
+          value={text}
+          onChangeText={setText}
+          placeholder="Type here..."
+          multiline
         />
-        <View style={styles.header}>
-          <Image source={logo} style={styles.logo} resizeMode="contain" />
+      </View>
+      <View style={[styles.centerContainer, ,]} ref={sliderRef}>
+        {/* Center the button */}
+        <View
+          style={[
+            {width: buttonWidth * 2}, // Set the button width
+            styles.sliderContainer,
+            currentStepIndex === 5 ? highlightedStyle : {},
+          ]}>
+          <Text
+            style={[
+              {width: buttonWidth * 2}, // Set the button width
+              styles.label,
+            ]}>
+            Select Number of Results: {searchNumber}
+          </Text>
+          <Slider
+            style={[{width: buttonWidth * 2, height: 30}, styles.slider]}
+            minimumValue={1} // Minimum value for the slider
+            maximumValue={10} // Maximum value for the slider
+            step={1} // Step size for the slider
+            value={searchNumber} // Current value for the slider
+            onValueChange={handleSliderChange} // Event handler when the slider value changes
+            minimumTrackTintColor="#75A47F" // Color for the active part of the slider
+            maximumTrackTintColor="#d3d3d3" // Color for the inactive part of the slider
+            thumbTintColor="#75A47F" // Color for the thumb (slider handle)
+          />
         </View>
-        {/* New view for settings and user profile buttons */}
-        <View style={styles.row}>
-          <TouchableOpacity
-              ref={profileButtonRef}
-              style={[
-                styles.buttonContainer,
-                isButtonPressed ? styles.buttonHover : {},
-                currentStepIndex === 0 ? highlightedStyle : {}, // Apply hover style
-              ]}
-              onPressIn={handlePressIn} // Simulate hover
-              onPressOut={handlePressOut} // Revert hover
-              onPress={() => navigation.navigate('User')} // Navigate to User profile
-          >
-            <FontAwesomeIcon icon={faUser} />
-          </TouchableOpacity>
+        <TouchableOpacity
+          ref={textSubmitButton}
+          style={[
+            {width: buttonWidth}, // Set the button width
+            styles.submitButtonContainer,
+            isButtonPressed ? styles.submitButtonHover : {},
+            currentStepIndex === 6 ? highlightedStyle : {}, // Apply hover style
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={handleTextSubmit} // Placeholder action
+        >
+          <Text style={styles.submitButtonText}>Submit Text</Text>
+        </TouchableOpacity>
+      </View>
 
-          <TouchableOpacity
-              ref={settingsButtonRef}
-              style={[
-                styles.buttonContainer,
-                isButtonPressed ? styles.buttonHover : {},
-                currentStepIndex === 1 ? highlightedStyle : {}, // Apply hover style
-              ]}
-              onPressIn={handlePressIn} // Simulate hover
-              onPressOut={handlePressOut} // Revert hover
-              onPress={() => navigation.navigate('Settings')} // Navigate to Settings
-          >
-            <FontAwesomeIcon icon={faGear} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-              ref={syncButtonRef}
-              style={[
-                styles.buttonContainer,
-                isButtonPressed ? styles.buttonHover : {},
-                currentStepIndex === 2 ? highlightedStyle : {}, // Apply hover style
-              ]}
-              onPressIn={handlePressIn} // Simulate hover
-              onPressOut={handlePressOut} // Revert hover
-              onPress={synchronizationHandler} // Placeholder action
-          >
-            <FontAwesomeIcon icon={faRotate} />
-            <Text style={styles.buttonText}>Synchronize</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-ref={userGuideRef}
-style={[
-      styles.buttonContainer,
-  isButtonPressed ? styles.buttonHover : {}, // Apply hover style
-  currentStepIndex === 3 ? highlightedStyle : {},
-]}
-onPressIn={handlePressIn} // Simulate hover
-onPressOut={handlePressOut} // Revert hover
-onPress={() => measureAndDisplayGuide(0)}
-// Placeholder action
->
-<FontAwesomeIcon icon={faBook} />
-<Text style={styles.buttonText}>User Guide</Text>
-</TouchableOpacity>
-</View>
-
-<View
-    style={[
-      styles.textAreaContainer,
-      currentStepIndex === 4 ? highlightedStyle : {},
-    ]}>
-  <Text style={styles.label}>Enter text for search:</Text>
-  <TextInput
-      ref={textInputRef}
-      style={styles.textArea}
-      value={text}
-      onChangeText={setText}
-      placeholder="Type here..."
-      multiline
-  />
-</View>
-<View style={[styles.centerContainer, ,]} ref={sliderRef}>
-  {/* Center the button */}
-  <View
-      style={[
-        {width: buttonWidth * 2}, // Set the button width
-        styles.sliderContainer,
-        currentStepIndex === 5 ? highlightedStyle : {},
-      ]}>
-    <Text
+      <TouchableOpacity
+        ref={imagePickerRef}
         style={[
-          {width: buttonWidth * 2}, // Set the button width
-          styles.label,
-        ]}>
-      Select Number of Results: {searchNumber}
-    </Text>
-    <Slider
-        style={[{width: buttonWidth * 2, height: 30}, styles.slider]}
-        minimumValue={1} // Minimum value for the slider
-        maximumValue={10} // Maximum value for the slider
-        step={1} // Step size for the slider
-        value={searchNumber} // Current value for the slider
-        onValueChange={handleSliderChange} // Event handler when the slider value changes
-        minimumTrackTintColor="#75A47F" // Color for the active part of the slider
-        maximumTrackTintColor="#d3d3d3" // Color for the inactive part of the slider
-        thumbTintColor="#75A47F" // Color for the thumb (slider handle)
-    />
-  </View>
-  <TouchableOpacity
-      ref={textSubmitButton}
-      style={[
-        {width: buttonWidth}, // Set the button width
-        styles.submitButtonContainer,
-        isButtonPressed ? styles.submitButtonHover : {},
-        currentStepIndex === 6 ? highlightedStyle : {}, // Apply hover style
-      ]}
-      onPressIn={handlePressIn} // Simulate hover
-      onPressOut={handlePressOut} // Revert hover
-      onPress={handleTextSubmit} // Placeholder action
-  >
-    <Text style={styles.submitButtonText}>Submit Text</Text>
-  </TouchableOpacity>
-</View>
+          styles.imagePicker,
+          currentStepIndex === 7 ? highlightedStyle : {},
+        ]}
+        onPress={handleImageChange}>
+        {image ? (
+          <Image source={{uri: image.uri}} style={styles.imagePreview} />
+        ) : (
+          <Text style={styles.imagePickerText}>
+            {t('Tap to select an image')}
+          </Text>
+        )}
+      </TouchableOpacity>
 
-<TouchableOpacity
-    ref={imagePickerRef}
-    style={[
-      styles.imagePicker,
-      currentStepIndex === 7 ? highlightedStyle : {},
-    ]}
-    onPress={handleImageChange}>
-  {image ? (
-      <Image source={{uri: image.uri}} style={styles.imagePreview} />
-  ) : (
-      <Text style={styles.imagePickerText}>Tap to select an image</Text>
-  )}
-</TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.cameraButton, isButtonPressed ? styles.buttonHover : {}]}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        onPress={handleCaptureImage}>
+        <FontAwesomeIcon icon={faCamera} />
+        <Text style={styles.buttonText}>Capture Image</Text>
+      </TouchableOpacity>
 
-<TouchableOpacity
-    style={[styles.cameraButton, isButtonPressed ? styles.buttonHover : {}]}
-    onPressIn={handlePressIn}
-    onPressOut={handlePressOut}
-    onPress={handleCaptureImage}>
-  <FontAwesomeIcon icon={faCamera} />
-  <Text style={styles.buttonText}>Capture Image</Text>
-</TouchableOpacity>
+      <View style={[styles.centerContainer]} ref={sliderRef}>
+        {/* Center the button */}
+        <View
+          style={[
+            {width: buttonWidth * 2}, // Set the button width
+            styles.sliderContainer,
+          ]}>
+          <Text
+            style={[
+              {width: buttonWidth * 2}, // Set the button width
+              styles.label,
+              currentStepIndex === 5 ? highlightedStyle : {},
+            ]}>
+            Select Number of Results: {searchNumber}
+          </Text>
+          <Slider
+            style={[{width: buttonWidth * 2, height: 30}, styles.slider]}
+            minimumValue={1} // Minimum value for the slider
+            maximumValue={10} // Maximum value for the slider
+            step={1} // Step size for the slider
+            value={searchNumber} // Current value for the slider
+            onValueChange={handleSliderChange} // Event handler when the slider value changes
+            minimumTrackTintColor="#75A47F" // Color for the active part of the slider
+            maximumTrackTintColor="#d3d3d3" // Color for the inactive part of the slider
+            thumbTintColor="#75A47F" // Color for the thumb (slider handle)
+          />
+        </View>
+        <TouchableOpacity
+          ref={imageSubmitButton}
+          style={[
+            {width: buttonWidth}, // Set the button width
+            styles.submitButtonContainer,
+            isButtonPressed ? styles.submitButtonHover : {},
+            currentStepIndex === 8 ? highlightedStyle : {}, // Apply hover style
+          ]}
+          onPressIn={handlePressIn} // Simulate hover
+          onPressOut={handlePressOut} // Revert hover
+          onPress={handleImageSubmit} // Placeholder action
+        >
+          <Text style={styles.submitButtonText}>Upload Image</Text>
+        </TouchableOpacity>
+      </View>
 
-<View style={[styles.centerContainer]} ref={sliderRef}>
-  {/* Center the button */}
-  <View
-      style={[
-        {width: buttonWidth * 2}, // Set the button width
-        styles.sliderContainer,
-      ]}>
-    <Text
-        style={[
-          {width: buttonWidth * 2}, // Set the button width
-          styles.label,
-          currentStepIndex === 5 ? highlightedStyle : {},
-        ]}>
-      Select Number of Results: {searchNumber}
-    </Text>
-    <Slider
-        style={[{width: buttonWidth * 2, height: 30}, styles.slider]}
-        minimumValue={1} // Minimum value for the slider
-        maximumValue={10} // Maximum value for the slider
-        step={1} // Step size for the slider
-        value={searchNumber} // Current value for the slider
-        onValueChange={handleSliderChange} // Event handler when the slider value changes
-        minimumTrackTintColor="#75A47F" // Color for the active part of the slider
-        maximumTrackTintColor="#d3d3d3" // Color for the inactive part of the slider
-        thumbTintColor="#75A47F" // Color for the thumb (slider handle)
-    />
-  </View>
-  <TouchableOpacity
-      ref={imageSubmitButton}
-      style={[
-        {width: buttonWidth}, // Set the button width
-        styles.submitButtonContainer,
-        isButtonPressed ? styles.submitButtonHover : {},
-        currentStepIndex === 8 ? highlightedStyle : {}, // Apply hover style
-      ]}
-      onPressIn={handlePressIn} // Simulate hover
-      onPressOut={handlePressOut} // Revert hover
-      onPress={handleImageSubmit} // Placeholder action
-  >
-    <Text style={styles.submitButtonText}>Upload Image</Text>
-  </TouchableOpacity>
-</View>
-
-{imageList.length > 0 && (
-    <View style={styles.resultsContainer}>
-      <Text style={styles.subheading}>Returned Images:</Text>
-      {imageList.map((imgSrc, index) => (
-          <Image
+      {imageList.length > 0 && (
+        <View style={styles.resultsContainer}>
+          <Text style={styles.subheading}>Returned Images:</Text>
+          {imageList.map((imgSrc, index) => (
+            <Image
               key={index}
               source={{uri: imgSrc}}
               style={styles.resultImage}
-          />
-      ))}
-    </View>
-)}
-</ScrollView>
-);
+            />
+          ))}
+        </View>
+      )}
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({

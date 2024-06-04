@@ -35,7 +35,7 @@ function RegisterPage() {
     };
 
     try {
-      const response = await fetch('http://10.0.2.2:8080/auth/register', {
+      const response = await fetch('http://192.168.221.8:8080/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,10 +50,10 @@ function RegisterPage() {
       } else {
         console.log('Registration successful!');
         setErrors('');
-        navigation.navigate('Main'); // Use the correct name of your main page route
+        navigation.navigate('Login'); // Use the correct name of your main page route
       }
     } catch (error) {
-      navigation.navigate('Main');
+
       console.error('Error during registration:', error);
     }
   };
@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
     textAlign: 'center', // Center align the text
   },
   input: {
+  color: '#000000',
     height: 50, // A taller input for easier touch
     marginBottom: 15, // Increase space between inputs
     borderWidth: 1,
