@@ -2,6 +2,9 @@ import React, {useState, useEffect, useRef} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import Slider from '@react-native-community/slider';
+import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+//import { CameraRoll } from "react-native";
+import { CameraRoll } from "@react-native-camera-roll/camera-roll";
 import {
   View,
   Text,
@@ -486,7 +489,39 @@ function MainPage() {
   const handleSliderChange = value => {
     setSearchNumber(Math.floor(value));
   };
-
+  async function requestPermissions() {
+     const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        {
+          title: 'Permission to access your photos',
+          message: 'We need access to your photos',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        }
+      );
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('Permission denied');
+        return [];
+      }
+  }
+  async function getPhotos() {
+    try {
+      const photos = await CameraRoll.getPhotos({
+        first: 3, // Adjust based on how many photos you want to fetch
+        assetType: 'Photos',
+      });
+      const photoURIs = photos.edges.map(edge => edge.node.image.uri);
+      console.log(photoURIs); // Print the URIs to the log
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  const handleBulkUpload = async () => {
+    requestPermissions();
+    console.log("here");
+    return getPhotos();
+  };
   const highlightedStyle = {backgroundColor: 'orange'};
 
   return (
@@ -686,6 +721,20 @@ function MainPage() {
         >
           <Text style={styles.submitButtonText}>Upload Image</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+                  ref={imageSubmitButton}
+                  style={[
+                    {width: buttonWidth}, // Set the button width
+                    styles.submitButtonContainer,
+                    isButtonPressed ? styles.submitButtonHover : {},
+                    currentStepIndex === 8 ? highlightedStyle : {}, // Apply hover style
+                  ]}
+                  onPressIn={handlePressIn} // Simulate hover
+                  onPressOut={handlePressOut} // Revert hover
+                  onPress={handleBulkUpload} // Placeholder action
+                >
+                  <Text style={styles.submitButtonText}>Bulk Image</Text>
+                </TouchableOpacity>
       </View>
 
       {imageList.length > 0 && (

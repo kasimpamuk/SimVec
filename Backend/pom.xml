@@ -11,7 +11,7 @@
 	<groupId>io.gitlab.group23</groupId>
 	<artifactId>simvec</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>simvec</name>
+	<name>Simvec</name>
 	<description>SimVec Project</description>
 	<properties>
 		<java.version>17</java.version>

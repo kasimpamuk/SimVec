@@ -33,9 +33,10 @@ function RegisterPage() {
       password: password,
       roles: 'ROLE_USER',
     };
-
+    navigation.navigate('Main');
+    `
     try {
-      const response = await fetch('http://192.168.221.8:8080/auth/register', {
+      const response = await fetch('http://localhost:8080/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,6 +57,7 @@ function RegisterPage() {
 
       console.error('Error during registration:', error);
     }
+    `
   };
 
   return (
