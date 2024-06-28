@@ -22,6 +22,7 @@ import {
   Dimensions,
   Platform,
   Linking,
+  FlatList,
 } from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {PermissionsAndroid} from 'react-native';
@@ -38,6 +39,7 @@ import {faArrowCircleUp} from '@fortawesome/free-solid-svg-icons/faArrowCircleUp
 import OverlayGuide from './UserGuide';
 
 function MainPage() {
+  const [galleryImages, setGalleryImages] = useState([]);
   const {t, i18n} = useTranslation();
   const [text, setText] = useState('');
   const [searchNumber, setSearchNumber] = useState(5);
@@ -531,20 +533,20 @@ function MainPage() {
       return true; // Assuming iOS permissions are handled elsewhere
   }
 
-  async function getPhotos() {
-    try {
-      const photos = await CameraRoll.getPhotos({
-        first: 5, // Adjust based on how many photos you want to fetch
-        assetType: 'Photos',
-      });
-      const photoURIs = photos.edges.map(edge => edge.node.image.uri);
-      console.log(photoURIs); // Print the URIs to the log
-      return photoURIs;
-    } catch (error) {
-      console.error(error);
-      return [];
+    async function getPhotos() {
+      try {
+        const photos = await CameraRoll.getPhotos({
+          first: 15, // Adjust based on how many photos you want to fetch
+          assetType: 'Photos',
+        });
+        const photoURIs = photos.edges.map(edge => edge.node.image.uri);
+        setGalleryImages(photoURIs); // Set the fetched URIs to state
+        console.log(photoURIs); // Print the URIs to the log
+      } catch (error) {
+        console.error(error);
+      }
     }
-  }
+
 
   const handleBulkUpload = async () => {
     const permissionGranted = await requestPermissions();
@@ -771,6 +773,9 @@ function MainPage() {
                 </TouchableOpacity>
       </View>
 
+
+
+
       {imageList.length > 0 && (
         <View style={styles.resultsContainer}>
           <Text style={styles.subheading}>Returned Images:</Text>
@@ -782,7 +787,19 @@ function MainPage() {
             />
           ))}
         </View>
+
       )}
+
+   <View style={styles.resultsContainer}>
+     <FlatList
+       data={galleryImages}
+       keyExtractor={(item, index) => index.toString()}
+       renderItem={({ item }) => (
+         <Image source={{ uri: item }} style={styles.imageGallery} />
+       )}
+       numColumns={2} // Display two columns of images
+     />
+   </View>
     </ScrollView>
   );
 }
@@ -924,6 +941,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 10,
     color: '#333',
+  },
+  imageGallery: {
+    width: '48%', // Adjust width for two columns
+    height: 200,
+    marginBottom: 10,
+    borderRadius: 5,
+    margin: '1%', // Add margin for spacing between images
   },
   resultImage: {
     width: '100%',
