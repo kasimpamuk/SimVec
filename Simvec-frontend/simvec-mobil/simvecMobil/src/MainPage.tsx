@@ -5,6 +5,7 @@ import Slider from '@react-native-community/slider';
 import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 //import { CameraRoll } from "react-native";
 import { CameraRoll } from "@react-native-camera-roll/camera-roll";
+
 import {
   View,
   Text,
@@ -20,6 +21,7 @@ import {
   Easing,
   Dimensions,
   Platform,
+  Linking,
 } from 'react-native';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {PermissionsAndroid} from 'react-native';
@@ -490,38 +492,70 @@ function MainPage() {
     setSearchNumber(Math.floor(value));
   };
   async function requestPermissions() {
-     const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        {
-          title: 'Permission to access your photos',
-          message: 'We need access to your photos',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
+    if (Platform.OS === 'android') {
+        try {
+          const readStatus = await checkAndRequestPermissions();
+          //const writeStatus = await check(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE);
+
+
+          if (!readStatus ) {
+            console.log("here");
+            const readGranted = await request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE);
+            const writeGranted = await request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE);
+
+            if (readGranted === RESULTS.GRANTED && writeGranted === RESULTS.GRANTED) {
+              console.log('Permissions granted');
+              return true;
+            } else {
+              console.log('Permissions denied');
+              return false;
+            }
+          } else if (readStatus === RESULTS.NEVER_ASK_AGAIN) {
+            Alert.alert(
+              'Permissions Required',
+              'This app requires access to your photos. Please enable the permissions in the app settings.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Open Settings', onPress: () => openSettings() }
+              ]
+            );
+            return false;
+          } else {
+            return true;
+          }
+        } catch (err) {
+          console.warn(err);
+          return false;
         }
-      );
-      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('Permission denied');
-        return [];
       }
+      return true; // Assuming iOS permissions are handled elsewhere
   }
+
   async function getPhotos() {
     try {
       const photos = await CameraRoll.getPhotos({
-        first: 3, // Adjust based on how many photos you want to fetch
+        first: 5, // Adjust based on how many photos you want to fetch
         assetType: 'Photos',
       });
       const photoURIs = photos.edges.map(edge => edge.node.image.uri);
       console.log(photoURIs); // Print the URIs to the log
+      return photoURIs;
     } catch (error) {
       console.error(error);
+      return [];
     }
   }
+
   const handleBulkUpload = async () => {
-    requestPermissions();
-    console.log("here");
-    return getPhotos();
+    const permissionGranted = await requestPermissions();
+    if (permissionGranted) {
+      return getPhotos();
+    } else {
+      console.log('Permission was not granted');
+      return [];
+    }
   };
+
   const highlightedStyle = {backgroundColor: 'orange'};
 
   return (
