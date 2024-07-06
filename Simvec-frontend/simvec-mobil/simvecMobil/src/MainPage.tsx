@@ -5,7 +5,6 @@ import Slider from '@react-native-community/slider';
 import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 //import { CameraRoll } from "react-native";
 import { CameraRoll } from "@react-native-camera-roll/camera-roll";
-
 import {
   View,
   Text,
@@ -137,7 +136,7 @@ function MainPage() {
     try {
       const token = await AsyncStorage.getItem('userToken');
       const response = await fetch(
-        'http://192.168.221.8:8080/api/text-based-search',
+        'http://10.0.2.2:8080/api/text-based-search',
         {
           method: 'POST',
           headers: {
@@ -272,7 +271,7 @@ function MainPage() {
     try {
       const token = await AsyncStorage.getItem('userToken');
       const response = await fetch(
-        `http://192.168.221.8:8080/api/image-based-search/${searchNumber}`,
+        `http://10.0.2.2:8080/api/image-based-search/${searchNumber}`,
         {
           method: 'POST',
           headers: {
@@ -343,7 +342,7 @@ function MainPage() {
       formData1.append('username', user_info.username);
 
       const response1 = await fetch(
-        'http://192.168.221.8:8080/api/synchronize-images',
+        'http://10.0.2.2:8080/api/synchronize-images',
         {
           method: 'POST',
           headers: {
@@ -422,7 +421,7 @@ function MainPage() {
 
       // Send the second request with form-data
       const response2 = await fetch(
-        'http://192.168.221.8:8080/api/add-delete-images',
+        'http://10.0.2.2:8080/api/add-delete-images',
         {
           method: 'POST',
           headers: {
@@ -447,7 +446,7 @@ function MainPage() {
       formData3.append('updated_images', JSON.stringify(imagesToDelete));
 
       const response3 = await fetch(
-        'http://192.168.221.8:8000/api/synchronization',
+        'http://10.0.2.2:8000/api/synchronization',
         {
           method: 'POST',
           body: formData3,
@@ -470,7 +469,7 @@ function MainPage() {
       });
 
       const response4 = await fetch(
-        'http://192.168.221.8:8000/api/synchronization',
+        'http://10.0.2.2:8000/api/synchronization',
         {
           method: 'POST',
           body: formData4,
@@ -533,6 +532,8 @@ function MainPage() {
       return true; // Assuming iOS permissions are handled elsewhere
   }
 
+
+
     async function getPhotos() {
       try {
         const photos = await CameraRoll.getPhotos({
@@ -540,7 +541,157 @@ function MainPage() {
           assetType: 'Photos',
         });
         const photoURIs = photos.edges.map(edge => edge.node.image.uri);
-        setGalleryImages(photoURIs); // Set the fetched URIs to state
+         setGalleryImages(photoURIs); // Set the fetched URIs to state
+         console.log(galleryImages);
+
+        const getImageData = (path) => {
+          return RNFS.readFile(path, 'base64')
+            .then(base64Data => {
+              return {
+                uri: path,
+                base64: base64Data,
+              };
+            })
+            .catch(error => {
+              console.error('Error loading image data:', error);
+            });
+        };
+        const loadImages = () => {
+          const promises = photoURIs.map(path => getImageData(path));
+          return Promise.all(promises)
+            .then(images => {
+              console.log('Loaded images:', images);
+              return images;
+            })
+            .catch(error => {
+              console.error('Failed to load images:', error);
+              return []; // Return an empty array on error
+            });
+        };
+
+        const appendImagesToFormData = (images) => {
+          const formData = new FormData();
+          for (let i = 0; i < images.length; i++) {  // Changed from photoURIs.length to images.length
+            const image = images[i];
+            formData.append('images', {
+              name: `image_${i}.jpg`, // Using index to differentiate file names
+              type: 'image/jpeg',
+              uri: image.uri,
+            });
+          }
+          return formData;
+        };
+
+        const uploadImages = async (formData) => {
+          try {
+            const token = await AsyncStorage.getItem('userToken');
+            const response = await fetch(
+              `http://10.0.2.2:8080/api/transfer-images`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'multipart/form-data',
+                  Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+              },
+            );
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            console.log('Upload successful');
+          } catch (error) {
+            console.error('Error uploading images:', error.message);
+          }
+        };
+
+        loadImages().then(images => {
+          const formData = appendImagesToFormData(images);
+          // Now formData is ready with all images appended
+          uploadImages(formData); // Handle uploading within this scope
+        });
+
+/*
+        const loadImages = () => {
+          const promises = photoURIs.map(path => getImageData(path));
+          return Promise.all(promises)
+            .then(images => {
+              console.log('Loaded images:', images);
+              return images;
+            })
+            .catch(error => {
+              console.error('Failed to load images:', error);
+              return []; // Return an empty array on error
+            });
+        };
+        //loadImages();
+        // HERE!!!
+    const appendImagesToFormData = (images) => {
+      const formData = new FormData();
+      for (let i = 0; i < photoURIs.length; i++) {
+        const image = images[i];
+        formData.append('images', {
+          name: `image_${i}.jpg`, // Using index to differentiate file names
+          type: 'image/jpeg',
+          uri: image.uri,
+        });
+      }
+      // Here, you can proceed to send formData to a server or handle it as needed
+      return formData;
+    };
+         loadImages().then(images => {
+           const formData = appendImagesToFormData(images);
+           // Now formData is ready with all images appended
+           // You might want to do something with this formData, like uploading it
+           console.log('FormData is ready to be sent');
+         });
+
+
+
+          const token = await AsyncStorage.getItem('userToken');
+          const response = await fetch(
+              `http://10.0.2.2:8080/api/transfer-images`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'multipart/form-data',
+                  Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+              },
+            );
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            */
+
+        /*
+        const formData = new FormData(); // Create a FormData object
+            formData.append('file', {
+              name: 'uploaded_image.jpg',
+              type: 'image/jpeg',
+              uri: image.uri,
+            });
+            try {
+              const token = await AsyncStorage.getItem('userToken');
+              const response = await fetch(
+                `http://10.0.2.2:8080/api/image-based-search/${searchNumber}`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: formData,
+                },
+              );
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }*/
+        // HERE!!!
+
+
+
         console.log(photoURIs); // Print the URIs to the log
       } catch (error) {
         console.error(error);

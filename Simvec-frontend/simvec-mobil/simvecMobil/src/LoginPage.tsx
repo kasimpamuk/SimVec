@@ -33,7 +33,7 @@ function LoginPage() {
     };
 
     try {
-      const response = await fetch('http://192.168.221.8:8080/auth/login', {
+      const response = await fetch('http://10.0.2.2:8080/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
