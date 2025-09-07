@@ -1,7 +1,6 @@
 ## [SimVec](https://senior.ceng.metu.edu.tr/2024/SIMVEC/)
 
-<img width="2400" alt="image" src="https://github.com/kasimpamuk/SimVec/assets/63200204/b4aa5575-0fbc-4861-b3f3-6071a27489d9">
-
+<img width="287" height="116" alt="simvec_logo" src="https://github.com/user-attachments/assets/950f3935-ec35-4d40-a946-5c981ca82f0e" />
 
 
 ## Description
@@ -18,14 +17,14 @@ SimVec is a small and easy-to-use app, with some extra features to make it even 
 
 
 
-https://github.com/kasimpamuk/SimVec/assets/63200204/a95f5886-9c17-4bf8-a326-9bc88c8be62a
+https://github.com/user-attachments/assets/e68de8aa-6ea7-43bb-b421-d3c2442cde05
 
 
 
 
 ## Component Diagram
 
-<img width="706" alt="image" src="https://github.com/kasimpamuk/SimVec/assets/63200204/fccdcaee-aa5f-4bb9-8345-88378d83eff7">
+<img width="706" height="499" alt="component_diagram" src="https://github.com/user-attachments/assets/4917d6dc-561f-4873-b15b-5602aa41f71e" />
 
 The description of the overall system architecture above is the following. There shall be a client application, namely Mobile Application, that the user can interact with. This client application shall have a good-looking and user friendly GUI in the front-end part. This client application shall send and receive data with the server. Although there may be several data incoming and outgoing in the client application, the main data that will be sent and received is the image or text.
 
