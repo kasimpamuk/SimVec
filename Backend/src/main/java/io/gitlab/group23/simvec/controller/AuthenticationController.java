@@ -24,7 +24,7 @@ public class AuthenticationController {
 	}
 
 	@PostMapping("/register")
-	public String register(@RequestBody SimvecUser simvecUser) {
+	public String register(@Validated @RequestBody SimvecUser simvecUser) {
 		log.info("Register: " + simvecUser.toString());
 		return authenticationService.register(simvecUser);
 	}

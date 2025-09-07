@@ -43,26 +43,16 @@ public class SimvecController {
 
 	private final VectorDatabaseService vectorDatabaseService;
 	private final ImagePopulationService imagePopulationService;
-	private final TranslateText translateText;
 	private final AuthenticationService authenticationService;
-	private final UserService userService;
 
 	private final ImageSynchronizationService imageSynchronizationService;
 
 	@Autowired
-	public SimvecController(VectorDatabaseService vectorDatabaseService, TranslateText translateText, AuthenticationService authenticationService, UserService userService, ImagePopulationService imagePopulationService, ImageSynchronizationService imageSynchronizationService) {
+	public SimvecController(VectorDatabaseService vectorDatabaseService, AuthenticationService authenticationService, ImagePopulationService imagePopulationService, ImageSynchronizationService imageSynchronizationService) {
 		this.vectorDatabaseService = vectorDatabaseService;
-        this.translateText = translateText;
 		this.authenticationService = authenticationService;
-		this.userService = userService;
 		this.imagePopulationService = imagePopulationService;
 		this.imageSynchronizationService = imageSynchronizationService;
-	}
-
-	@PostMapping("/register")
-	public ResponseEntity<String> registerUser(@Validated @RequestBody SimvecUser simvecUser) {
-		//System.out.println("hello");
-		return ResponseEntity.ok(authenticationService.register(simvecUser));
 	}
 
 
