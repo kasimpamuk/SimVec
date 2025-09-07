@@ -117,6 +117,5 @@ When a user performs a search, the request (image-based or text-based) is sent t
 
 The user receives the search results on their device, which includes the images similar to their query.
 
-<img width="1455" alt="image" src="https://github.com/kasimpamuk/SimVec/assets/63200204/279e7370-6fe3-4bd4-a8dd-c1b3f4c489b5">
-
+<img width="1455" height="134" alt="techstack" src="https://github.com/user-attachments/assets/14669d65-2193-4aa1-8a3d-4d036a18ee9c" />
 
